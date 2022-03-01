@@ -6,66 +6,63 @@
 
 #define NUM_NON_TERMINALS 52
 
-// Defining Non-Terminals using enum as number of non-terminals used in the grammar are fixed.
-typedef enum {
-    program,
-    otherFunctions,
-    mainFunction,
-    stmts,
-    function,
-    input_par,
-    parameter_list,
-    output_par,
-    dataType,
-    remaining_list,
-    primitiveDatatype,
-    constructiveDatatype,
-    typeDefinitions,
-    declarations,
-    otherStmts,
-    returnStmt,
-    actualOrRedefined,
-    typeDefinition,
-    definetypestmt,
-    fieldDefinitions,
-    fieldDefinition,
-    moreFields,
-    fieldType,
-    global_or_not,
-    stmt,
-    assignmentStmt,
-    iterativeStmt,
-    conditionalStmt,
-    ioStmt,
-    funCallStmt,
-    singleOrRecId,
-    arithmeticExpression,
-    constructedVariable,
-    oneExpansion,
-    moreExpansions,
-    outputParameters,
-    inputParameters,
-    idList,
-    booleanExpression,
-    elsecondition,
-    var,
-    term,
-    expPrime,
-    lowPrecedenceOperators,
-    factor,
-    termPrime,
-    highPrecedenceOperators,
-    logicalOp,
-    relationalOp,
-    optionalReturn,
-    more_ids,
-    A
-} NonTerminal;
+const char* NonTerminalID[] = {
+    "program",
+    "mainFunction",
+	"otherFunctions",
+	"function",
+	"input_par",
+	"output_par",
+	"parameter_list",
+	"dataType",
+	"primitiveDatatype",
+	"constructedDatatype",
+	"remaining_list",
+	"stmts",
+	"typeDefinitions",
+	"typeDefinition",
+	"fieldDefinitions",
+	"fieldDefinition",
+	"moreFields",
+	"declarations",
+	"declaration",
+	"global_or_not",
+	"otherStmts",
+	"stmt",
+	"assignmentStmt",
+	"singleOrRecId",
+    "new_24",
+	"funCallStmt",
+	"outputParameters",
+	"inputParameters",
+	"iterativeStmt",
+	"conditionalStmt",
+	"elsePart",
+	"ioStmt",
+	"arithmeticExpression",
+	"expPrime",
+	"term",
+	"termPrime",
+	"factor",
+	"highPrecedenceOperators",
+	"lowPrecedenceOperators",
+    "all",
+	"temp",
+    "booleanExpression",
+    "var",
+	"logicalOp",
+	"relationalOp",
+	"returnStmt",
+	"optionalReturn",
+	"idList",
+	"more_ids"
+};
+
 
 // Structure that defines a symbol either terminal or non-terminal.
 typedef struct Symbol {
     int type; // Used as tag for the finding the type in SymbolValueInfor Type = 0 represents terminal, Type = 1 represents nonTerminal.
-    int TokenID; // Stores the TokendID of terminal or non-terminal which is decided by the type field.
+    int symbolID; // Stores the TokendID of terminal or non-terminal which is decided by the type field.
 } Symbol;
 
 // LinkedList of symbols which is used for many purposes.
@@ -82,7 +79,7 @@ typedef struct GrammarRule {
 
 // Structure which encapsulates all the prodcution rules for a non-terminal
 typedef struct ProductionRules {
-    NonTerminal non_terminal;
+    int nonTerminalId;
     GrammarRule* rules;
     int currSize;
     int maxSize;
