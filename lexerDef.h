@@ -2,6 +2,7 @@
 #define LEXICAL_ANALYZER_DEF_H
 
 #define NUM_TERMINALS 58
+#define EPS 57
 
 const char* TerminalIDs[] = {
     "TK_ASSIGNOP",
