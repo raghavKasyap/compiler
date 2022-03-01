@@ -2,6 +2,7 @@
 #ifndef PARSER_DEF_H
 #define PARSER_DEF_H
 
+#include <stdbool.h>
 #include "lexerDef.h"
 
 #define NUM_NON_TERMINALS 53
@@ -97,8 +98,8 @@ typedef struct Grammar {
 
 // This structure stores the first and follow sets for each non-terminal
 typedef struct FirstAndFollow {
-    unsigned int** firstSets; // 2D array which contains the first sets of each non-terminal
-    unsigned int** followSets; // 2D array which contains the follow sets of each non-terminal
-} FirstAndFollowSets;
+    bool** firstSets; // 2D array which contains the first sets of each non-terminal
+    bool** followSets; // 2D array which contains the follow sets of each non-terminal
+} FirstAndFollow;
 
 #endif
