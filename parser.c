@@ -139,7 +139,7 @@ FirstAndFollow* initializeFirstAndFollow() {
 }
 
 void unionFirstSets(bool* firstSet, bool* tempFirstSet) {
-    for (int i = 0; i < NUM_TERMINALS - 1; i++) {
+    for (int i = 0; i < NUM_TERMINALS - 2; i++) {
         if (tempFirstSet[i]) firstSet[i] = true;
     }
 }
@@ -246,10 +246,50 @@ bool* computeFirstSetNonTerminal(ProductionRules* currNonTerminal, Grammar* gram
     return firstSet;
 }
 
+RHSNonTerminalAppearance** initialize_RHS_NT_Appearance() {
+    RHSNonTerminalAppearance** rhsNonTerminalAppearance = (RHSNonTerminalAppearance **) malloc (NUM_NON_TERMINALS * sizeof(RHSNonTerminalAppearance *));
+    
+    for(int i = 0; i < NUM_NON_TERMINALS; i++) {
+        rhsNonTerminalAppearance[i] = (RHSNonTerminalAppearance *) malloc (sizeof(RHSNonTerminalAppearance));
+        rhsNonTerminalAppearance[i] -> next = NULL;
+        rhsNonTerminalAppearance[i] -> tail = rhsNonTerminalAppearance[i];
+    }
+
+    return rhsNonTerminalAppearance;
+}
+
+RHSNonTerminalAppearance* createNewNode(int nonTerminalId, int productionNum) {
+    RHSNonTerminalAppearance* newNode = (RHSNonTerminalAppearance *) malloc (sizeof(RHSNonTerminalAppearance));
+    int* location = (int *) malloc (2 * sizeof(int));
+    location[0] = nonTerminalId;
+    location[1] = productionNum;
+    newNode -> location = location;
+    newNode -> next = NULL;
+}
+
+void populateRHSAppearance(RHSNonTerminalAppearance** rhsNonTerminalAppearance, Grammar* grammar) {
+    for (int i = 0; i < NUM_NON_TERMINALS; i++) {
+        ProductionRules* currNonTerminal = &(grammar -> productionRules[i]);
+        for (int j = 0; j < currNonTerminal -> currSize; j++) {
+            GrammarRule* rules = &(currNonTerminal -> rules[j]); 
+            SymbolLinkedList* list = rules -> rightHandSide;
+            
+            while(list != NULL) {
+                if (list -> symbol.type == 1) {
+                    rhsNonTerminalAppearance[list -> symbol.symbolID] -> tail -> next = createNewNode(currNonTerminal -> nonTerminalId, j);
+                    rhsNonTerminalAppearance[list -> symbol.symbolID] -> tail = rhsNonTerminalAppearance[list -> symbol.symbolID] -> tail -> next;
+                }
+                list = list -> next;
+            }
+        }
+    }
+}
+
 FirstAndFollow* computeFirstAndFollowSets(Grammar* grammar) {
     FirstAndFollow* firstAndFollowSets = initializeFirstAndFollow();
     bool* isCalculated = (_Bool *) malloc(NUM_NON_TERMINALS * sizeof(_Bool));
-    
+    RHSNonTerminalAppearance** rhsNonTerminalAppearance = initialize_RHS_NT_Appearance();
+    populateRHSAppearance(rhsNonTerminalAppearance, grammar);
     
     for (int i = 0; i < NUM_NON_TERMINALS; i++) 
         isCalculated[i] = false;
@@ -259,6 +299,7 @@ FirstAndFollow* computeFirstAndFollowSets(Grammar* grammar) {
         ProductionRules* currNonTerminal = &(grammar -> productionRules[i]);
         computeFirstSetNonTerminal(currNonTerminal, grammar, firstAndFollowSets -> firstSets, isCalculated);
     }
+
 
     
     return firstAndFollowSets;
@@ -275,6 +316,6 @@ int main() {
     firstAndFollowSets = computeFirstAndFollowSets(grammar);
 
     for(int i = 0; i < NUM_TERMINALS; i++) {
-        printf("%d ", firstAndFollowSets ->firstSets[0][i]);
+        printf("%d ", firstAndFollowSets ->firstSets[15][i]);
     }
 }

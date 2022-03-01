@@ -102,4 +102,10 @@ typedef struct FirstAndFollow {
     bool** followSets; // 2D array which contains the follow sets of each non-terminal
 } FirstAndFollow;
 
+typedef struct RHSNonTerminalAppearance {
+    int* location;
+    struct RHSNonTerminalAppearance* next;
+    struct RHSNonTerminalAppearance* tail;
+} RHSNonTerminalAppearance;
+
 #endif
