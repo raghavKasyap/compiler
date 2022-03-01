@@ -1,7 +1,7 @@
 #ifndef LEXICAL_ANALYZER_DEF_H
 #define LEXICAL_ANALYZER_DEF_H
 
-#define NUM_TERMINALS 58
+#define NUM_TERMINALS 59
 #define EPS 57
 
 const char* TerminalIDs[] = {
@@ -62,7 +62,8 @@ const char* TerminalIDs[] = {
     "TK_GT",
     "TK_GE",
     "TK_NE",
-    "EPS"
+    "EPS",
+    "DOLLAR"
 };
 
 #endif
