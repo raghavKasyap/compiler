@@ -62,17 +62,10 @@ typedef enum {
     A
 } NonTerminal;
 
-typedef Token Terminal;
-
-typedef union SymbolValueInfo {
-    NonTerminal nonTerminal_value;
-    Terminal terminal_value;
-} SymbolValueInfo;
-
 // Structure that defines a symbol either terminal or non-terminal.
 typedef struct Symbol {
     int type; // Used as tag for the finding the type in SymbolValueInfor Type = 0 represents terminal, Type = 1 represents nonTerminal.
-    SymbolValueInfo symbol_value; // Stores the value of terminal or non-terminal which is decided by the type field.
+    int TokenID; // Stores the TokendID of terminal or non-terminal which is decided by the type field.
 } Symbol;
 
 // LinkedList of symbols which is used for many purposes.
