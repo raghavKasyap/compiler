@@ -52,10 +52,11 @@ Grammar* initGrammar() {
 }
 
 // Function for creating new Grammar rule 
-GrammarRule* createNewRule(SymbolLinkedList* rightHandSide) {
+GrammarRule* createNewRule(SymbolLinkedList* rightHandSide, int size) {
     GrammarRule* newRule = (GrammarRule *) malloc(sizeof(GrammarRule));
     newRule -> rightHandSide = rightHandSide;
     newRule -> isEpsilon = rightHandSide -> symbol.type == 0 && rightHandSide -> symbol.symbolID == EPS ? 1 : 0;
+    newRule -> size = size;
     return newRule;
 }
 
@@ -88,6 +89,7 @@ Grammar * generateGrammarFromFile(char* fileName) {
         printf(" ");
         SymbolLinkedList *rightHandSide = (SymbolLinkedList *) malloc(sizeof(SymbolLinkedList));
         SymbolLinkedList *currHead = rightHandSide;
+        int size = 0;
         currHead -> next = NULL;
 
         while(symbol != NULL) {
@@ -97,6 +99,7 @@ Grammar * generateGrammarFromFile(char* fileName) {
             }
             Symbol newSymbol = createSymbol(symbol);
             SymbolLinkedList* nextSymbolInRule = (SymbolLinkedList *) malloc(sizeof(SymbolLinkedList));
+            size++;
             nextSymbolInRule -> symbol = newSymbol;
             nextSymbolInRule -> next = NULL;
             currHead -> next = nextSymbolInRule;
@@ -106,7 +109,7 @@ Grammar * generateGrammarFromFile(char* fileName) {
         }
         
         // creating newRule;
-        GrammarRule* newRule = createNewRule(rightHandSide -> next);
+        GrammarRule* newRule = createNewRule(rightHandSide -> next, size);
         
         // Adding newRule to grammar
         addNewRuleToGrammar(grammar, nonTerminalId, newRule);
@@ -589,7 +592,8 @@ ParseTable createParseTable(FirstAndFollow* faft, ParseTable table, Grammar* gra
 }
 
 // Prasing Input Source Code functions
-ParseTreeRoot* parseInputSourceCode(char* tokenFile)
+ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table) {};
+
 int main() {
     Grammar* grammar;
     FirstAndFollow* firstAndFollowSets;

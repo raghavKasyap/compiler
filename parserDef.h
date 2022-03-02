@@ -80,6 +80,7 @@ typedef struct SymbolLinkedList {
 // does not have head
 typedef struct GrammarRule {
     int isEpsilon; // For determing wether the RHS of the grammar rule is epsilon or not.
+    int size;
     SymbolLinkedList* rightHandSide; // stores the right hand side of the rule which can be a mixture of both terminals and non-Terminals
 } GrammarRule;
 
