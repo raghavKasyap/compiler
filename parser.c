@@ -35,7 +35,7 @@ Symbol createSymbol(char* symbol) {
     return newSymbol;
 }
 
-// This function is used to initalized grammar and set the productions of each non-terminal to defaults
+// Function for initalizing grammar and seting the productions of each non-terminal to defaults
 Grammar* initGrammar() {
     Grammar* grammar = (Grammar*) malloc(sizeof(Grammar));
     grammar -> productionRules = (ProductionRules *) malloc(NUM_NON_TERMINALS * sizeof(ProductionRules));
@@ -51,7 +51,7 @@ Grammar* initGrammar() {
     return grammar;
 }
 
-// This function is used for creating new Grammar rule 
+// Function for creating new Grammar rule 
 GrammarRule* createNewRule(SymbolLinkedList* rightHandSide) {
     GrammarRule* newRule = (GrammarRule *) malloc(sizeof(GrammarRule));
     newRule -> rightHandSide = rightHandSide;
@@ -59,7 +59,7 @@ GrammarRule* createNewRule(SymbolLinkedList* rightHandSide) {
     return newRule;
 }
 
-// This function is used to add the newRule of nonTerminalId into grammar
+// Function to add the newRule of nonTerminalId into grammar
 void addNewRuleToGrammar(Grammar* grammar, int nonTerminalId, GrammarRule* newRule) {
     ProductionRules* currNonTerminalProds = &(grammar -> productionRules[nonTerminalId]);
 
@@ -74,6 +74,7 @@ void addNewRuleToGrammar(Grammar* grammar, int nonTerminalId, GrammarRule* newRu
     }
 }
 
+// Function reads grammar from grammar.txt and creates in memory grammar data structure.
 Grammar * generateGrammarFromFile(char* fileName) {
     FILE* fptr = fopen(fileName , "r");
     Grammar* grammar = initGrammar();
@@ -117,6 +118,7 @@ Grammar * generateGrammarFromFile(char* fileName) {
     return grammar;
 }
 
+// Helper function for initializing the first and follow set in FirstAndFollow datastructure
 _Bool** initializeTable() {
     _Bool** table = (_Bool **) malloc(NUM_NON_TERMINALS * sizeof(_Bool *));
     for(int i = 0; i < NUM_NON_TERMINALS; i++) {
@@ -131,6 +133,7 @@ _Bool** initializeTable() {
     return table;
 }
 
+// Helper function to initialize FirstAndFollow data structure
 FirstAndFollow* initializeFirstAndFollow() {
     FirstAndFollow* firstAndFollowSets = (FirstAndFollow *) malloc(sizeof(FirstAndFollow));
     firstAndFollowSets -> firstSets = initializeTable();
@@ -138,14 +141,19 @@ FirstAndFollow* initializeFirstAndFollow() {
     return firstAndFollowSets;
 }
 
-void unionFirstSets(bool* firstSet, bool* tempFirstSet) {
-    for (int i = 0; i < NUM_TERMINALS - 2; i++) {
-        if (tempFirstSet[i]) firstSet[i] = true;
+// utility function which is used to take union of 2 sets (bit vectors)
+void unionSets(bool* set, bool* tempSet) {
+    for (int i = 0; i < NUM_TERMINALS - 1; i++) {
+        if (tempSet[i]) set[i] = true;
     }
 }
 
 bool* computeFirstSetTerminal(int terminalId) {
-    bool* firstSetTerminal = (_Bool*)(calloc(NUM_TERMINALS, sizeof(int)));
+    bool* firstSetTerminal = (_Bool *)(malloc(NUM_TERMINALS * sizeof(_Bool)));
+
+    for (int i = 0; i < NUM_TERMINALS; i++) 
+        firstSetTerminal[i] = false;
+
     firstSetTerminal[terminalId] = true;
     return firstSetTerminal;
 }
@@ -176,7 +184,7 @@ bool* computeFirstSetRule(GrammarRule* rule, Grammar* grammar, bool** firstSets,
 
     if (isCalculated[currSymbol.symbolID] == true) {
         bool* tempFirstSet = firstSets[currSymbol.symbolID];
-        unionFirstSets(firstSetRule, tempFirstSet);
+        unionSets(firstSetRule, tempFirstSet);
         
         while(tempFirstSet[EPS] && currHead -> next != NULL) {
             currHead = currHead -> next;
@@ -188,7 +196,7 @@ bool* computeFirstSetRule(GrammarRule* rule, Grammar* grammar, bool** firstSets,
                 tempFirstSet = computeFirstSetNonTerminal(nextNonTerminal, grammar, firstSets, isCalculated);
             }
             
-            unionFirstSets(firstSetRule, tempFirstSet);
+            unionSets(firstSetRule, tempFirstSet);
         }
 
         if(currHead -> next == NULL && currHead -> symbol.type == 1 && firstSets[currHead -> symbol.symbolID][EPS]) {
@@ -200,7 +208,7 @@ bool* computeFirstSetRule(GrammarRule* rule, Grammar* grammar, bool** firstSets,
 
     ProductionRules* currNonTerminal = fetchNonTerminal(grammar, currSymbol.symbolID);
     bool* tempFirstSet = computeFirstSetNonTerminal(currNonTerminal, grammar, firstSets, isCalculated);
-    unionFirstSets(firstSetRule, tempFirstSet);
+    unionSets(firstSetRule, tempFirstSet);
 
     while(tempFirstSet[EPS] && currHead -> next != NULL) {
         currHead = currHead -> next;
@@ -212,7 +220,7 @@ bool* computeFirstSetRule(GrammarRule* rule, Grammar* grammar, bool** firstSets,
             tempFirstSet = computeFirstSetNonTerminal(nextNonTerminal, grammar, firstSets, isCalculated);
         }
         
-        unionFirstSets(firstSetRule, tempFirstSet);
+        unionSets(firstSetRule, tempFirstSet);
     }
 
     if(currHead -> next == NULL && currHead -> symbol.type == 1 && firstSets[currHead -> symbol.symbolID][EPS]) {
@@ -235,7 +243,7 @@ bool* computeFirstSetNonTerminal(ProductionRules* currNonTerminal, Grammar* gram
         GrammarRule* rule = &(currNonTerminal -> rules[i]);
         
         bool* tempFirstSet = computeFirstSetRule(rule, grammar, firstSets, isCalculated);
-        unionFirstSets(firstSet, tempFirstSet);
+        unionSets(firstSet, tempFirstSet);
         
         if (tempFirstSet[EPS]) derivesEps = true;
     }
@@ -246,6 +254,28 @@ bool* computeFirstSetNonTerminal(ProductionRules* currNonTerminal, Grammar* gram
     return firstSet;
 }
 
+//utility functions for debugging & printing to console.
+void printRHS(RHSNonTerminalAppearance** rhs) {
+    for (int i = 0; i < NUM_NON_TERMINALS; i++) {
+        RHSNonTerminalAppearance* curr = rhs[i];
+        printf("%d -> ", i);
+        curr = curr -> next;
+        while(curr != NULL) {
+            printf("[%d, %d] ", curr -> location[0], curr -> location[1]);
+            curr = curr -> next;
+        }
+        printf("\n");
+    }
+}
+
+void printSets(_Bool* sets) {
+    for(int i = 0; i < NUM_TERMINALS; i++) {
+        if(sets[i]) {
+            printf(TerminalIDs[i]);
+            printf(" ");
+        }
+    }
+}
 RHSNonTerminalAppearance** initialize_RHS_NT_Appearance() {
     RHSNonTerminalAppearance** rhsNonTerminalAppearance = (RHSNonTerminalAppearance **) malloc (NUM_NON_TERMINALS * sizeof(RHSNonTerminalAppearance *));
     
@@ -265,6 +295,8 @@ RHSNonTerminalAppearance* createNewNode(int nonTerminalId, int productionNum) {
     location[1] = productionNum;
     newNode -> location = location;
     newNode -> next = NULL;
+    newNode -> tail = NULL;
+    return newNode;
 }
 
 void populateRHSAppearance(RHSNonTerminalAppearance** rhsNonTerminalAppearance, Grammar* grammar) {
@@ -285,23 +317,148 @@ void populateRHSAppearance(RHSNonTerminalAppearance** rhsNonTerminalAppearance, 
     }
 }
 
+bool* createNewBaseFollowSet() {
+    bool* tempFollowSet = (_Bool*)(malloc(NUM_TERMINALS * sizeof(_Bool)));
+
+    for (int i = 0; i < NUM_TERMINALS; i++) 
+        tempFollowSet[i] = false;
+
+    tempFollowSet[DOLLAR] = true;
+    return tempFollowSet;
+}
+
+bool* computeFollowSetRule(int currNtId, int currRuleNt, GrammarRule* rule, Grammar* grammar, bool** firstSets, bool** followSets, bool* isCalculated, RHSNonTerminalAppearance** rhsNtAppearance, bool* prevCalledNts) {
+    // search for the currNonTerminalLocation
+    SymbolLinkedList* rhsSymbolsHead = rule -> rightHandSide;
+
+    while(rhsSymbolsHead -> symbol.type != 1 || rhsSymbolsHead -> symbol.symbolID != currNtId) {
+        rhsSymbolsHead = rhsSymbolsHead -> next;
+    }
+
+    bool* followSetRule = (_Bool*)(malloc(NUM_TERMINALS * sizeof(_Bool)));
+    
+    for (int i = 0; i < NUM_TERMINALS; i++) 
+        followSetRule[i] = false;
+
+    SymbolLinkedList* followSymbol = rhsSymbolsHead -> next;
+
+    // Handle different cases based on the location
+    // When the symbol is at the end of the production
+    if (followSymbol == NULL) {
+        bool* tempFollowSet = (_Bool*)(malloc(NUM_TERMINALS * sizeof(_Bool)));
+
+        for (int i = 0; i < NUM_TERMINALS; i++) 
+            tempFollowSet[i] = false;
+
+        if (currNtId != currRuleNt) {
+            tempFollowSet = computeFollowSetNonTerminal(currRuleNt, rhsNtAppearance, grammar, firstSets, followSets, isCalculated, prevCalledNts);
+        }
+
+        return tempFollowSet;
+    }
+
+    // when the symbol is followed by a terminal
+    if (followSymbol -> symbol.type == 0) {
+        return computeFirstSetTerminal(followSymbol -> symbol.symbolID);
+    }
+
+    bool* tempFollowSet = firstSets[followSymbol -> symbol.symbolID];
+    unionSets(followSetRule, tempFollowSet);
+
+    while(tempFollowSet[EPS] && followSymbol -> next != NULL) {
+        followSymbol = followSymbol -> next;
+
+        if(followSymbol -> symbol.type == 0) {
+            tempFollowSet = computeFirstSetTerminal(followSymbol -> symbol.symbolID);
+        } else {
+            tempFollowSet = firstSets[followSymbol -> symbol.symbolID];
+        }
+
+        unionSets(followSetRule, tempFollowSet);
+    }
+
+    if (tempFollowSet[EPS] && followSymbol -> next == NULL && currNtId != currRuleNt) {
+        tempFollowSet = computeFollowSetNonTerminal(currRuleNt, rhsNtAppearance, grammar, firstSets, followSets, isCalculated, prevCalledNts);
+        unionSets(followSetRule, tempFollowSet);
+    }
+
+    return followSetRule;
+}
+
+bool* computeFollowSetNonTerminal(int currNtId, RHSNonTerminalAppearance** rhsNtAppearance, Grammar* grammar, bool** firstSets, bool** followSets, bool* isCalculated, bool* prevCalledNts) {
+    if(isCalculated[currNtId] == true) {
+        return followSets[currNtId];
+    }
+
+    bool* followSet = (_Bool*)(malloc(NUM_TERMINALS * sizeof(_Bool)));
+    RHSNonTerminalAppearance* rhsList = rhsNtAppearance[currNtId];
+
+    for (int i = 0; i < NUM_TERMINALS; i++) 
+        followSet[i] = false;
+    
+    if(prevCalledNts[currNtId]) {
+        return followSet;
+    } else {
+        prevCalledNts[currNtId] = true;
+    }
+
+    // base case for start symbol
+    if (currNtId == 0) {
+        bool* tempFollowSet = createNewBaseFollowSet();
+        unionSets(followSet, tempFollowSet);
+    }
+
+    // go to production rule
+    rhsList =  rhsList -> next;  // Take us to the first occurence
+    
+    while(rhsList != NULL) {
+        int* location = rhsList -> location;
+        GrammarRule* rule = &(grammar -> productionRules[location[0]].rules[location[1]]);
+        bool* tempFollowSet = computeFollowSetRule(currNtId, location[0], rule, grammar, firstSets, followSets, isCalculated, rhsNtAppearance, prevCalledNts);
+        unionSets(followSet, tempFollowSet);
+        rhsList = rhsList -> next;
+    }
+
+    followSets[currNtId] = followSet;
+    isCalculated[currNtId] = true;
+    return followSet;
+}
+
 FirstAndFollow* computeFirstAndFollowSets(Grammar* grammar) {
     FirstAndFollow* firstAndFollowSets = initializeFirstAndFollow();
     bool* isCalculated = (_Bool *) malloc(NUM_NON_TERMINALS * sizeof(_Bool));
-    RHSNonTerminalAppearance** rhsNonTerminalAppearance = initialize_RHS_NT_Appearance();
-    populateRHSAppearance(rhsNonTerminalAppearance, grammar);
     
+    // First Set computation
     for (int i = 0; i < NUM_NON_TERMINALS; i++) 
         isCalculated[i] = false;
-    
-    
+
     for(int i = 0; i < NUM_NON_TERMINALS; i++) {
         ProductionRules* currNonTerminal = &(grammar -> productionRules[i]);
         computeFirstSetNonTerminal(currNonTerminal, grammar, firstAndFollowSets -> firstSets, isCalculated);
     }
 
-
+    // Follow Set computation
+    RHSNonTerminalAppearance** rhsNonTerminalAppearance = initialize_RHS_NT_Appearance();
+    populateRHSAppearance(rhsNonTerminalAppearance, grammar);
     
+    printRHS(rhsNonTerminalAppearance);
+
+    for (int i = 0; i < NUM_NON_TERMINALS; i++) 
+        isCalculated[i] = false;
+    
+    bool* prevCalledNts = (_Bool *) malloc(NUM_NON_TERMINALS * sizeof(_Bool));
+    
+    // First Set computation
+    for (int i = 0; i < NUM_NON_TERMINALS; i++) 
+        prevCalledNts[i] = false;
+    
+    for(int i = 0; i < NUM_NON_TERMINALS; i++) {
+        computeFollowSetNonTerminal(i, rhsNonTerminalAppearance, grammar, firstAndFollowSets -> firstSets, firstAndFollowSets -> followSets, isCalculated, prevCalledNts);
+        
+        for (int i = 0; i < NUM_NON_TERMINALS; i++) 
+            prevCalledNts[i] = false;
+    }
+
     return firstAndFollowSets;
 }
 
@@ -315,7 +472,7 @@ int main() {
     // calculating first and follow sets and storing them in firstAndFollowSets data strcture
     firstAndFollowSets = computeFirstAndFollowSets(grammar);
 
-    for(int i = 0; i < NUM_TERMINALS; i++) {
-        printf("%d ", firstAndFollowSets ->firstSets[15][i]);
-    }
+    printf(NonTerminalIDs[15]);
+    printf(" -> ");
+    printSets(firstAndFollowSets -> followSets[15]);
 }

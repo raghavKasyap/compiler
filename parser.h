@@ -6,6 +6,12 @@
 #define INITIAL_MAX_PRODUCTIONS 3
 #define ADDITIONAL_PRODUCTIONS_SIZE 3
 
-FirstAndFollow* computeFirstAndFollowSets(Grammar* grammar);
+// helper functions for core functions
 bool* computeFirstSetNonTerminal(ProductionRules* currNonTerminal, Grammar* grammar, bool** firstSets, bool* isCalculated);
+bool *computeFollowSetNonTerminal(int currNtId, RHSNonTerminalAppearance **rhsNtAppearance, Grammar *grammar, bool **firstSets, bool **followSets, bool *isCalculated, bool* prevCalledNts);
+
+// core functions of parser.c file
+FirstAndFollow *computeFirstAndFollowSets(Grammar *grammar);
+void createParseTable(FirstAndFollow firstAndFollow, ParseTable T);
+
 #endif
