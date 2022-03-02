@@ -2,7 +2,8 @@
 #define LEXICAL_ANALYZER_DEF_H
 
 #define NUM_TERMINALS 59
-#define EPS 57
+#define EPS 58
+#define DOLLAR 57
 
 const char* TerminalIDs[] = {
     "TK_ASSIGNOP",
@@ -62,8 +63,8 @@ const char* TerminalIDs[] = {
     "TK_GT",
     "TK_GE",
     "TK_NE",
-    "EPS",
-    "DOLLAR"
+    "DOLLAR",
+    "EPS"
 };
 
 #endif
