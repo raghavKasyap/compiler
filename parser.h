@@ -12,6 +12,6 @@ bool *computeFollowSetNonTerminal(int currNtId, RHSNonTerminalAppearance **rhsNt
 
 // core functions of parser.c file
 FirstAndFollow *computeFirstAndFollowSets(Grammar *grammar);
-void createParseTable(FirstAndFollow firstAndFollow, ParseTable T);
+ParseTable createParseTable (FirstAndFollow* faft, ParseTable table, Grammar* grammar);
 
 #endif

@@ -77,6 +77,7 @@ typedef struct SymbolLinkedList {
 } SymbolLinkedList;
 
 // Structure to represent the right hand side of grammar rule.
+// does not have head
 typedef struct GrammarRule {
     int isEpsilon; // For determing wether the RHS of the grammar rule is epsilon or not.
     SymbolLinkedList* rightHandSide; // stores the right hand side of the rule which can be a mixture of both terminals and non-Terminals
@@ -102,10 +103,13 @@ typedef struct FirstAndFollow {
     bool** followSets; // 2D array which contains the follow sets of each non-terminal
 } FirstAndFollow;
 
+// it has head
 typedef struct RHSNonTerminalAppearance {
     int* location;
     struct RHSNonTerminalAppearance* next;
     struct RHSNonTerminalAppearance* tail;
 } RHSNonTerminalAppearance;
+
+typedef int** ParseTable;
 
 #endif

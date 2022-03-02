@@ -55,7 +55,7 @@ Grammar* initGrammar() {
 GrammarRule* createNewRule(SymbolLinkedList* rightHandSide) {
     GrammarRule* newRule = (GrammarRule *) malloc(sizeof(GrammarRule));
     newRule -> rightHandSide = rightHandSide;
-    newRule -> isEpsilon = rightHandSide -> symbol.type == 0 && rightHandSide -> symbol.symbolID == 57 ? 1 : 0;
+    newRule -> isEpsilon = rightHandSide -> symbol.type == 0 && rightHandSide -> symbol.symbolID == EPS ? 1 : 0;
     return newRule;
 }
 
@@ -255,6 +255,8 @@ bool* computeFirstSetNonTerminal(ProductionRules* currNonTerminal, Grammar* gram
 }
 
 //utility functions for debugging & printing to console.
+
+// Function for printing the RHS location of each non_terminal
 void printRHS(RHSNonTerminalAppearance** rhs) {
     for (int i = 0; i < NUM_NON_TERMINALS; i++) {
         RHSNonTerminalAppearance* curr = rhs[i];
@@ -268,6 +270,7 @@ void printRHS(RHSNonTerminalAppearance** rhs) {
     }
 }
 
+// Function for printing first sets and follow sets
 void printSets(_Bool* sets) {
     for(int i = 0; i < NUM_TERMINALS; i++) {
         if(sets[i]) {
@@ -276,6 +279,40 @@ void printSets(_Bool* sets) {
         }
     }
 }
+
+// Function to print firstSets and followSets
+
+void printAllSets(FirstAndFollow* firstAndFollow) {
+    for(int i = 0; i < NUM_NON_TERMINALS; i++) {
+        printf("%s -> ", NonTerminalIDs[i]);
+        printSets(firstAndFollow -> firstSets[i]);
+        printf("                    ");
+        printSets(firstAndFollow -> followSets[i]);
+        printf("\n");
+    }
+}
+
+// Function to check validity of first sets and follow sets
+void checkValiditySets(FirstAndFollow* firstAndFollow) {
+    bool** firstSet = firstAndFollow -> firstSets;
+    bool** followSet = firstAndFollow -> followSets;
+    bool* commonTerminals = (_Bool *) malloc(NUM_TERMINALS * sizeof(_Bool));
+
+    for (int i = 0; i < NUM_NON_TERMINALS; i++) {
+        bool derivesEps = firstSet[i][EPS];
+        printf("%d -> ", NonTerminalIDs[i]);
+
+        if (derivesEps) {
+            for(int j = 0; j < NUM_TERMINALS; j++) {
+                if (firstSet[i] == followSet[i]) {
+                    commonTerminals[i] = true;
+                }
+            }
+        }
+        
+    }
+} 
+
 RHSNonTerminalAppearance** initialize_RHS_NT_Appearance() {
     RHSNonTerminalAppearance** rhsNonTerminalAppearance = (RHSNonTerminalAppearance **) malloc (NUM_NON_TERMINALS * sizeof(RHSNonTerminalAppearance *));
     
@@ -315,6 +352,14 @@ void populateRHSAppearance(RHSNonTerminalAppearance** rhsNonTerminalAppearance, 
             }
         }
     }
+}
+
+bool checkAllFalse(bool* followSet) {
+    bool allFalse = true;
+    for (int i = 0; i < NUM_TERMINALS; i++)  {
+        if (followSet[i]) allFalse = false;
+    }
+    return allFalse;
 }
 
 bool* createNewBaseFollowSet() {
@@ -386,7 +431,7 @@ bool* computeFollowSetRule(int currNtId, int currRuleNt, GrammarRule* rule, Gram
 }
 
 bool* computeFollowSetNonTerminal(int currNtId, RHSNonTerminalAppearance** rhsNtAppearance, Grammar* grammar, bool** firstSets, bool** followSets, bool* isCalculated, bool* prevCalledNts) {
-    if(isCalculated[currNtId] == true) {
+    if(isCalculated[currNtId] == true && !checkAllFalse(followSets[currNtId])) {
         return followSets[currNtId];
     }
 
@@ -462,6 +507,86 @@ FirstAndFollow* computeFirstAndFollowSets(Grammar* grammar) {
     return firstAndFollowSets;
 }
 
+ParseTable initializeParseTable() {
+    ParseTable table = (ParseTable) malloc (NUM_NON_TERMINALS * sizeof(int *));
+    for(int i = 0; i < NUM_NON_TERMINALS; i++) {
+        table[i] = (int *) malloc (NUM_TERMINALS * sizeof(int));
+        
+        for(int j = 0; j < NUM_TERMINALS; j++) {
+            table[i][j] = -1;
+        }
+    }
+
+    return table;
+}
+
+ParseTable populateParseTable(FirstAndFollow* faft, ParseTable table, GrammarRule* alpha, int nonTerminalId, int prodNum) {
+    // derives epsilon directly
+    if (alpha -> isEpsilon) {
+        for(int i = 0; i < NUM_TERMINALS - 1; i++) {
+            if (faft -> followSets[nonTerminalId][i]) {
+                table[nonTerminalId][i] = prodNum; 
+            }
+        }
+    }
+    else {
+        SymbolLinkedList* symbolList = alpha -> rightHandSide;
+        bool derivesEpsilon = false;
+        while(symbolList != NULL) {
+            if (symbolList -> symbol.type == 1) {
+                int currFirstNonTerminal = symbolList -> symbol.symbolID;
+                bool* firstSet = faft -> firstSets[currFirstNonTerminal];
+                
+                for (int i = 0; i < NUM_TERMINALS - 1; i++) {
+                    if (firstSet[i]) {
+                        table[nonTerminalId][i] = prodNum;
+                    }
+                }
+
+                if (firstSet[EPS]) { // first (alpha) constains eplison
+                    symbolList = symbolList -> next;
+                    derivesEpsilon = true;
+                } else { // first (alpha) but does not contain eplison;
+                    symbolList = NULL;
+                    derivesEpsilon = false;
+                }
+            }
+            else {
+                table[nonTerminalId][symbolList -> symbol.symbolID] = prodNum;
+                symbolList = NULL;
+                derivesEpsilon = false;
+            }
+        }
+
+        if (derivesEpsilon) {
+            for(int i = 0; i < NUM_TERMINALS - 1; i++) {
+                if (faft -> followSets[nonTerminalId][i]) {
+                    table[nonTerminalId][i] = prodNum; 
+                }
+            }
+        }
+    }
+    return table;
+}
+
+ParseTable createParseTable(FirstAndFollow* faft, ParseTable table, Grammar* grammar) {
+    table = initializeParseTable();
+
+    for(int i = 15; i < 16; i++) {
+        ProductionRules* currNonTerminal = &(grammar -> productionRules[i]);
+        int nonTerminalId = currNonTerminal -> nonTerminalId;
+        int numProds = currNonTerminal -> currSize;
+
+        for(int j = 0; j < numProds; j++) {
+            GrammarRule* alpha = &(currNonTerminal -> rules[j]);
+
+            table = populateParseTable(faft, table, alpha, nonTerminalId, j);
+        } 
+    }
+
+    return table;
+}
+
 int main() {
     Grammar* grammar;
     FirstAndFollow* firstAndFollowSets;
@@ -471,8 +596,7 @@ int main() {
 
     // calculating first and follow sets and storing them in firstAndFollowSets data strcture
     firstAndFollowSets = computeFirstAndFollowSets(grammar);
-
-    printf(NonTerminalIDs[15]);
-    printf(" -> ");
-    printSets(firstAndFollowSets -> followSets[15]);
+    ParseTable table;
+    table = createParseTable(firstAndFollowSets, table, grammar);
+    printf("%d", table[15][31]);
 }
