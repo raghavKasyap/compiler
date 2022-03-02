@@ -112,4 +112,23 @@ typedef struct RHSNonTerminalAppearance {
 
 typedef int** ParseTable;
 
+typedef struct ParseTreeNode {
+    bool type;
+    int symbolId;
+    int numberOfChildren;
+    int parentSymbolId; // -1 for root node;
+    struct ParseTreeNode** children;
+} ParseTreeNode;
+
+typedef struct Stack {
+    bool type;
+    int symbolId;
+    ParseTreeNode* refToParseTree;
+    struct Stack* next;
+} Stack;
+
+typedef struct ParseTreeRoot {
+    ParseTreeNode* root;
+} ParseTreeRoot;
+
 #endif

@@ -507,6 +507,7 @@ FirstAndFollow* computeFirstAndFollowSets(Grammar* grammar) {
     return firstAndFollowSets;
 }
 
+// Parse Table Functions
 ParseTable initializeParseTable() {
     ParseTable table = (ParseTable) malloc (NUM_NON_TERMINALS * sizeof(int *));
     for(int i = 0; i < NUM_NON_TERMINALS; i++) {
@@ -587,6 +588,8 @@ ParseTable createParseTable(FirstAndFollow* faft, ParseTable table, Grammar* gra
     return table;
 }
 
+// Prasing Input Source Code functions
+ParseTreeRoot* parseInputSourceCode(char* tokenFile)
 int main() {
     Grammar* grammar;
     FirstAndFollow* firstAndFollowSets;
