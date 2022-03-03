@@ -632,6 +632,7 @@ TokenInfo* getNextToken() {
     
 };
 
+// asdjkf
 void pop(Stack* top) {
     Stack* temp = top;
     top = top -> next;
