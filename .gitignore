@@ -1,6 +1,6 @@
 a.exe
-.vscode/
-lexer.o
-parser.o
-runCode.exe
-t1.txt
+/.vscode/
+/lexer.o
+/parser.o
+/runCode.exe
+/t1.txt
