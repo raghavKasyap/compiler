@@ -575,7 +575,7 @@ ParseTable populateParseTable(FirstAndFollow* faft, ParseTable table, GrammarRul
 ParseTable createParseTable(FirstAndFollow* faft, ParseTable table, Grammar* grammar) {
     table = initializeParseTable();
 
-    for(int i = 15; i < 16; i++) {
+    for(int i = 0; i < NUM_NON_TERMINALS; i++) {
         ProductionRules* currNonTerminal = &(grammar -> productionRules[i]);
         int nonTerminalId = currNonTerminal -> nonTerminalId;
         int numProds = currNonTerminal -> currSize;
@@ -592,7 +592,12 @@ ParseTable createParseTable(FirstAndFollow* faft, ParseTable table, Grammar* gra
 
 ParseTreeNode* createNewTreeNode(bool type, int symbolId, int parentSymbolId, char* lexeme, int lineNumber, Value* value) {
     ParseTreeNode* newNode = (ParseTreeNode *) malloc(sizeof(ParseTreeNode));
-    char nonTerminalLexeme[5] = "----";
+    char* nonTerminalLexeme = (char *) malloc(5 * sizeof(char));
+    nonTerminalLexeme[0] = '-';
+    nonTerminalLexeme[1] = '-';
+    nonTerminalLexeme[2] = '-';
+    nonTerminalLexeme[3] = '-';
+    nonTerminalLexeme[4] = '\0';
     newNode -> type = type;
     newNode -> symbolId = symbolId;
     newNode -> parentSymbolId = parentSymbolId;
@@ -628,23 +633,106 @@ Stack* initializeStack(ParseTreeNode* ref) {
     return top;
 }
 
+int currTokenNumber = 0;
+TokenInfo* tokens = NULL;
+
+TokenInfo initializeToken(int lineNumber, char* lexeme, int tokenId, Value* value, bool isError) {
+    TokenInfo* newToken = (TokenInfo *) malloc(sizeof(TokenInfo));
+    newToken -> linenum = lineNumber;
+    newToken -> lexeme = lexeme;
+    newToken -> tokenId = tokenId;
+    newToken -> value = value;
+    newToken -> isError = isError;
+    return *newToken;
+}
+
 TokenInfo* getNextToken() {
-    
+    TokenInfo* tokens = (TokenInfo*) malloc(62 * sizeof(TokenInfo));
+
+    tokens[0] = initializeToken(1, "_main", 17, NULL, false);
+    tokens[1] = initializeToken(2,"Type",16, NULL, false);
+    tokens[2] = initializeToken(2,"Int",25, NULL, false);
+    tokens[3] = initializeToken(2,":",29, NULL, false);
+    tokens[4] = initializeToken(2,"b5",3, NULL, false);
+    tokens[5] = initializeToken(2,";",28, NULL, false);
+    tokens[6] = initializeToken(3,"Type",16, NULL, false);
+    tokens[7] = initializeToken(3,"Int",25, NULL, false);
+    tokens[8] = initializeToken(3,":",29, NULL, false);
+    tokens[9] = initializeToken(3,"d5cb34567",3, NULL, false);
+    tokens[10] = initializeToken(3,";",28, NULL, false);
+    tokens[11] = initializeToken(4,"Type",16, NULL, false);
+    tokens[12] = initializeToken(4,"Int",25, NULL, false);
+    tokens[13] = initializeToken(4,":",29, NULL, false);
+    tokens[14] = initializeToken(4,"b3b444",3, NULL, false);
+    tokens[15] = initializeToken(4,":",29, NULL, false);
+    tokens[16] = initializeToken(4,"Global",18, NULL, false);
+    tokens[17] = initializeToken(4,";",28, NULL, false);
+    tokens[18] = initializeToken(5,"Type",16, NULL, false);
+    tokens[19] = initializeToken(5,"Real",26, NULL, false);
+    tokens[20] = initializeToken(5,":",29, NULL, false);
+    tokens[21] = initializeToken(5,"c3",3, NULL, false);
+    tokens[22] = initializeToken(5,";",28, NULL, false);
+    tokens[23] = initializeToken(6,"b5",3, NULL, false);
+    tokens[24] = initializeToken(6,"<---",0, NULL, false);
+    Value* value = (Value* ) malloc(sizeof(Value));
+    value -> i = 1;
+    tokens[25] = initializeToken(6,"1",4, value, false);
+    tokens[26] = initializeToken(6,";",28, NULL, false);
+    tokens[27] = initializeToken(7,"Read",37, NULL, false);
+    tokens[28] = initializeToken(7,"(",32, NULL, false);
+    tokens[29] = initializeToken(7,"d5cb34567",3, NULL, false);
+    tokens[30] = initializeToken(7,")",33, NULL, false);
+    tokens[31] = initializeToken(7,";",28, NULL, false);
+    tokens[32] = initializeToken(8,"Read",37, NULL, false);
+    tokens[33] = initializeToken(8,"(",32, NULL, false);
+    tokens[34] = initializeToken(8,"b3b444",3, NULL, false);
+    tokens[35] = initializeToken(8,")",33, NULL, false);
+    tokens[36] = initializeToken(8,";",28, NULL, false);
+    tokens[37] = initializeToken(9,"[",21, NULL, false);
+    tokens[38] = initializeToken(9,"c3",3, NULL, false);
+    tokens[39] = initializeToken(9,"]",22, NULL, false);
+    tokens[40] = initializeToken(9,"<---",0, NULL, false);
+    tokens[41] = initializeToken(9,"Call",44, NULL, false);
+    tokens[42] = initializeToken(9,"_computeFunctionValue",6, NULL, false);
+    tokens[43] = initializeToken(9,"with",8, NULL, false);
+    tokens[44] = initializeToken(9,"parameters",9, NULL, false);
+    tokens[45] = initializeToken(9,"[",21, NULL, false);
+    tokens[46] = initializeToken(9,"b5",3, NULL, false);
+    tokens[47] = initializeToken(9,",",27, NULL, false);
+    tokens[48] = initializeToken(9,"d5cb34567",3, NULL, false);
+    tokens[49] = initializeToken(9,",",27, NULL, false);
+    tokens[50]= initializeToken(9,"b3b444",3, NULL, false);
+    tokens[51]= initializeToken(9,"]",22, NULL, false);
+    tokens[52]= initializeToken(9,";",28, NULL, false);
+    tokens[53]= initializeToken(10,"Write",38, NULL, false);
+    tokens[54]= initializeToken(10,"(",32, NULL, false);
+    tokens[55]= initializeToken(10,"c3",3, NULL, false);
+    tokens[56]= initializeToken(10,")",33, NULL, false);
+    tokens[57]= initializeToken(10,";",28, NULL, false);
+    tokens[58]= initializeToken(11,"Return",39, NULL, false);
+    tokens[59]= initializeToken(11,";",28, NULL, false);
+    tokens[60]= initializeToken(12,"end",10, NULL, false);
+    tokens[61]= initializeToken(-1,"dollar",DOLLAR, NULL, false);
+
+    int tempNum = currTokenNumber;
+    currTokenNumber++;
+    return &(tokens[tempNum]);
 };
 
-// asdjkf
-void pop(Stack* top) {
+Stack* pop(Stack* top) {
     Stack* temp = top;
     top = top -> next;
     free(temp);
+    return top;
 }
 
-void pushProduction(Stack* top, ParseTreeNode** children, int size) {
+Stack* pushProduction(Stack* top, ParseTreeNode** children, int size) {
     for (int i = size - 1; i >= 0; i--) {
         Stack* newNode = createNewStackNode(children[i] -> type, children[i] -> symbolId, children[i]);
         newNode -> next = top;
         top = newNode;
     }
+    return top;
 }
 
 void populateParseTree (ParseTreeNode* parentRef, ParseTreeNode** children, int size) {
@@ -693,17 +781,21 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
                 SymbolLinkedList* symbolsList = rule -> rightHandSide;
 
                 ParseTreeNode* parentRef = top -> refToParseTree;
-                pop(top);
+                top = pop(top);
 
                 if (!rule -> isEpsilon) {
                     ParseTreeNode** children = (ParseTreeNode **) malloc (rule -> size * sizeof(ParseTreeNode *));
                 
                     for(int i = 0; i < rule -> size; i++) {
-                        children[i] = createNewTreeNode(symbolsList -> symbol.type, symbolsList -> symbol.symbolID, top -> symbolId, NULL, -1, NULL);
+                        children[i] = createNewTreeNode(symbolsList -> symbol.type, symbolsList -> symbol.symbolID, parentRef -> symbolId, NULL, -1, NULL);
                         symbolsList = symbolsList -> next;
                     }
 
-                    pushProduction(top, children, rule -> size);
+                    top = pushProduction(top, children, rule -> size);
+                    populateParseTree(parentRef, children, rule -> size);
+                } else {
+                    ParseTreeNode** children = (ParseTreeNode **) malloc (rule -> size * sizeof(ParseTreeNode *));
+                    children[0] = createNewTreeNode(symbolsList -> symbol.type, symbolsList -> symbol.symbolID, parentRef -> symbolId, "EPS", -1, NULL);
                     populateParseTree(parentRef, children, rule -> size);
                 }
             } 
@@ -731,7 +823,7 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
             // case 1 - match 
             if (top -> symbolId == currToken -> tokenId) {
                 updateTerminalInfo(top -> refToParseTree, currToken -> lexeme, currToken -> linenum, currToken -> value);
-                pop(top);
+                top = pop(top);
                 currToken = getNextToken();
             }
 
@@ -765,8 +857,15 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
 
 void printTreeNode(ParseTreeNode* node, FILE* fptr) {
     // lexemeCurrentNode lineno tokenName valueIfNumber parentNodeSymbol isLeafNode(yes/no) NodeSymbol
-    char yes[3] = "yes";
-    char no[2] = "no";
+    char* yes = (char*) malloc(4 * sizeof(char));
+    char* no = (char*) malloc(3 * sizeof(char));
+    yes[0] = 'y';
+    yes[1] = 'e';
+    yes[2] = 's';
+    yes[3] = '\0';
+    no[0] = 'n';
+    no[1] = 'o';
+    no[2] = '\0';
     char* lexeme = node -> lexeme;
     int linenumber = node -> lineNumber;
     bool isRealNum = node -> symbolId == REALNUM;
@@ -838,5 +937,8 @@ int main() {
     firstAndFollowSets = computeFirstAndFollowSets(grammar);
     ParseTable table;
     table = createParseTable(firstAndFollowSets, table, grammar);
-    printf("%d", table[15][31]);
+    printAllSets(firstAndFollowSets);
+    ParseTreeRoot* tree = parseInputSourceCode("outfile.txt", table, grammar, firstAndFollowSets);
+    printParseTree(tree, "outfile.txt");
+
 }
