@@ -226,9 +226,16 @@ TokenInfo *createToken(char *lexeme, int linenum, Value *val, int tokenId, bool 
 // utility function to extract a substring between start and end pointers.
 char *getsubstring(char *start, char *end) {
     int n = (end - start) / sizeof(char);
-    char *s = (char *)malloc(n * sizeof(char));
-    strncpy(s, start, n);
+    char *s = (char *)malloc((n + 1) * sizeof(char));
+    char *temp = start;
+    int i = 0;
+    while (temp < end) {
+        s[i] = *temp;
+        ++temp;
+        ++i;
+    }
 
+    s[i] = '\0';
     read_new_token();
     return s;
 }
