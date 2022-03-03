@@ -213,7 +213,7 @@ Symbol_Table_Record *lookup(Symbol_Table_Record **Symbol_Table, char *lexeme) {
 TokenInfo *createToken(char *lexeme, int linenum, Value *val, int tokenId, bool isError) {
     TokenInfo *newtoken = (TokenInfo *)malloc(sizeof(TokenInfo));
     
-    newtoken -> lexeme = (char *)malloc(50 * sizeof(char)); // lexme size is limited here.
+    newtoken -> lexeme = (char *)malloc(40 * sizeof(char)); // lexme size is limited here.
     newtoken -> tokenId = tokenId;
     newtoken -> lexeme = lexeme;
     newtoken -> linenum = linenum;
@@ -228,6 +228,7 @@ char *getsubstring(char *start, char *end) {
     int n = (end - start) / sizeof(char);
     char *s = (char *)malloc(n * sizeof(char));
     strncpy(s, start, n);
+
     read_new_token();
     return s;
 }
@@ -989,6 +990,7 @@ TokenInfo *getNextToken(FILE *fp) {
         {
             retract();
             char *lexeme = getsubstring(ptr1, ptr2);
+
             Symbol_Table_Record *look_result = lookup(Symbol_Table, lexeme);
             if (look_result != NULL)
             {

@@ -671,14 +671,16 @@ void updateTerminalInfo (ParseTreeNode* node, char* lexeme, int lineNum, Value* 
 ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* grammar, FirstAndFollow* firstFollowSets) {
     ParseTreeRoot* tree = initializeTreeRoot();
     Stack* top = initializeStack(tree -> root);
-    FILE* fp = fopen(tokenFile, "r");
+    appendlastchar(tokenFile);
+    FILE *fp = fopen(tokenFile, "r");
 
     bool isDone = false; // represents correct parsing without errors
     bool hasLexcialError = false;
     bool hasSyntaticError = false;
     initialize_Symbol_Table();
-    TokenInfo* currToken = getNextToken(fp);
+
     
+    TokenInfo* currToken = getNextToken(fp);
     while(!isDone) {
 
         // case 1 - top symbol is dollar
@@ -689,7 +691,7 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
             } 
             else {
                 // error handling
-                printf("Syntax Error in line number %d", currToken -> linenum);
+                printf("Syntax Error in line number %d \n", currToken -> linenum);
                 break;
             }
         }
@@ -697,6 +699,7 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
         // case 2 - stack top is nonTerminal
         else if (top -> type) {
             // case 1 - match
+            
             if (table[top -> symbolId][currToken -> tokenId] != -1) {
                 int prodRuleNum = table[top -> symbolId][currToken -> tokenId];
                 
@@ -725,14 +728,17 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
 
             // case 2 - error
             else {
+                
                 // todo error handling panic mode  line numbers;
                 bool* followSet = firstFollowSets -> followSets[top -> symbolId];
-                while(currToken != NULL && !followSet[currToken -> tokenId]) {
+                
+                while(currToken -> tokenId != DOLLAR && !followSet[currToken -> tokenId]) {
+                    printf("%s", currToken -> lexeme);
                     currToken = getNextToken(fp);
                 }
 
-                pop(top);
-                if (currToken == NULL) 
+                top = pop(top);
+                if (currToken -> tokenId != DOLLAR) 
                     break;
                 
                 hasSyntaticError = true;
@@ -756,16 +762,19 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
                 if (currToken -> isError) {
                     hasLexcialError = true;
                     // print lexcial error along with line
-                    printf("Lexical Error in the line number %d. %s does not match the language specifications", currToken -> linenum, currToken -> lexeme);    
+                    printf("Lexical Error in the line number %d. %s does not match the language specifications \n", currToken -> linenum, currToken -> lexeme);    
                 }
                 
                 // case - 2 input terminal does not match with top of stack
-                printf("Syntatic Error in the line number %d. Expecting %s instead of %s", currToken -> linenum, TerminalIDs[top -> symbolId], TerminalIDs[currToken -> tokenId]);
-                // getting next token 
+                printf("Syntatic Error in the line number %d. Received %s lexeme. Expecting %s instead of %s \n", currToken -> linenum,  currToken -> lexeme ,TerminalIDs[top -> symbolId], TerminalIDs[currToken -> tokenId]);
+                // getting next token
+                
                 currToken = getNextToken(fp);
-
+                
+                
                 // assuming input token to be same as stack top to procede with parsing
-                pop(top); 
+                top = pop(top);
+                
                 continue;
             }
         }
