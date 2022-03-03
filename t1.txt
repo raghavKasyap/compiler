@@ -1,0 +1,13 @@
+_main 
+	type int : b5;
+	type int : d5cb34567;
+	type int :  b3b444 : global;
+	type real: c3;
+	b5 <--- 1;
+	read(d5cb34567);
+	read(b3b444);
+	[c3] <--- call _computeFunctionValue with parameters [b5, d5cb34567, b3b444];
+	write(c3);
+	return;
+end
+^^^

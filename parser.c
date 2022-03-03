@@ -2,9 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "parserDef.h"
-#include "lexerDef.h"
 #include "parser.h"
+#include "lexer.h"
+
+char* helperPtr1 = NULL;
+char* helperPtr2 = NULL;
+
+
 
 // Function to fetch the Non-Terminal ID of non_terminal from NonTerminalIDs array
 int fetchNonTerminalId(char* non_terminal) {
@@ -636,89 +640,6 @@ Stack* initializeStack(ParseTreeNode* ref) {
 int currTokenNumber = 0;
 TokenInfo* tokens = NULL;
 
-TokenInfo initializeToken(int lineNumber, char* lexeme, int tokenId, Value* value, bool isError) {
-    TokenInfo* newToken = (TokenInfo *) malloc(sizeof(TokenInfo));
-    newToken -> linenum = lineNumber;
-    newToken -> lexeme = lexeme;
-    newToken -> tokenId = tokenId;
-    newToken -> value = value;
-    newToken -> isError = isError;
-    return *newToken;
-}
-
-TokenInfo* getNextToken(FILE* fp) {
-    TokenInfo* tokens = (TokenInfo*) malloc(62 * sizeof(TokenInfo));
-
-    tokens[0] = initializeToken(1, "_main", 17, NULL, false);
-    tokens[1] = initializeToken(2,"Type",16, NULL, false);
-    tokens[2] = initializeToken(2,"Int",25, NULL, false);
-    tokens[3] = initializeToken(2,":",29, NULL, false);
-    tokens[4] = initializeToken(2,"b5",3, NULL, false);
-    tokens[5] = initializeToken(2,";",28, NULL, false);
-    tokens[6] = initializeToken(3,"Type",16, NULL, false);
-    tokens[7] = initializeToken(3,"Int",25, NULL, false);
-    tokens[8] = initializeToken(3,":",29, NULL, false);
-    tokens[9] = initializeToken(3,"d5cb34567",3, NULL, false);
-    tokens[10] = initializeToken(3,";",28, NULL, false);
-    tokens[11] = initializeToken(4,"Type",16, NULL, false);
-    tokens[12] = initializeToken(4,"Int",25, NULL, false);
-    tokens[13] = initializeToken(4,":",29, NULL, false);
-    tokens[14] = initializeToken(4,"b3b444",3, NULL, false);
-    tokens[15] = initializeToken(4,":",29, NULL, false);
-    tokens[16] = initializeToken(4,"Global",18, NULL, false);
-    tokens[17] = initializeToken(4,";",28, NULL, false);
-    tokens[18] = initializeToken(5,"Type",16, NULL, false);
-    tokens[19] = initializeToken(5,"Real",26, NULL, false);
-    tokens[20] = initializeToken(5,":",29, NULL, false);
-    tokens[21] = initializeToken(5,"c3",3, NULL, false);
-    tokens[22] = initializeToken(5,";",28, NULL, false);
-    tokens[23] = initializeToken(6,"b5",3, NULL, false);
-    tokens[24] = initializeToken(6,"<---",0, NULL, false);
-    Value* value = (Value* ) malloc(sizeof(Value));
-    value -> i = 1;
-    tokens[25] = initializeToken(6,"1",4, value, false);
-    tokens[26] = initializeToken(6,";",28, NULL, false);
-    tokens[27] = initializeToken(7,"Read",37, NULL, false);
-    tokens[28] = initializeToken(7,"(",32, NULL, false);
-    tokens[29] = initializeToken(7,"d5cb34567",3, NULL, false);
-    tokens[30] = initializeToken(7,")",33, NULL, false);
-    tokens[31] = initializeToken(7,";",28, NULL, false);
-    tokens[32] = initializeToken(8,"Read",37, NULL, false);
-    tokens[33] = initializeToken(8,"(",32, NULL, false);
-    tokens[34] = initializeToken(8,"b3b444",3, NULL, false);
-    tokens[35] = initializeToken(8,")",33, NULL, false);
-    tokens[36] = initializeToken(8,";",28, NULL, false);
-    tokens[37] = initializeToken(9,"[",21, NULL, false);
-    tokens[38] = initializeToken(9,"c3",3, NULL, false);
-    tokens[39] = initializeToken(9,"]",22, NULL, false);
-    tokens[40] = initializeToken(9,"<---",0, NULL, false);
-    tokens[41] = initializeToken(9,"Call",44, NULL, false);
-    tokens[42] = initializeToken(9,"_computeFunctionValue",6, NULL, false);
-    tokens[43] = initializeToken(9,"with",8, NULL, false);
-    tokens[44] = initializeToken(9,"parameters",9, NULL, false);
-    tokens[45] = initializeToken(9,"[",21, NULL, false);
-    tokens[46] = initializeToken(9,"b5",3, NULL, false);
-    tokens[47] = initializeToken(9,",",27, NULL, false);
-    tokens[48] = initializeToken(9,"d5cb34567",3, NULL, false);
-    tokens[49] = initializeToken(9,",",27, NULL, false);
-    tokens[50]= initializeToken(9,"b3b444",3, NULL, false);
-    tokens[51]= initializeToken(9,"]",22, NULL, false);
-    tokens[52]= initializeToken(9,";",28, NULL, false);
-    tokens[53]= initializeToken(10,"Write",38, NULL, false);
-    tokens[54]= initializeToken(10,"(",32, NULL, false);
-    tokens[55]= initializeToken(10,"c3",3, NULL, false);
-    tokens[56]= initializeToken(10,")",33, NULL, false);
-    tokens[57]= initializeToken(10,";",28, NULL, false);
-    tokens[58]= initializeToken(11,"Return",39, NULL, false);
-    tokens[59]= initializeToken(11,";",28, NULL, false);
-    tokens[60]= initializeToken(12,"end",10, NULL, false);
-    tokens[61]= initializeToken(-1,"dollar",DOLLAR, NULL, false);
-
-    int tempNum = currTokenNumber;
-    currTokenNumber++;
-    return &(tokens[tempNum]);
-};
-
 Stack* pop(Stack* top) {
     Stack* temp = top;
     top = top -> next;
@@ -750,13 +671,14 @@ void updateTerminalInfo (ParseTreeNode* node, char* lexeme, int lineNum, Value* 
 ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* grammar, FirstAndFollow* firstFollowSets) {
     ParseTreeRoot* tree = initializeTreeRoot();
     Stack* top = initializeStack(tree -> root);
-    FILE* fp = fopen(tokenFile, 'r');
+    FILE* fp = fopen(tokenFile, "r");
 
     bool isDone = false; // represents correct parsing without errors
     bool hasLexcialError = false;
     bool hasSyntaticError = false;
+    initialize_Symbol_Table();
     TokenInfo* currToken = getNextToken(fp);
-
+    
     while(!isDone) {
 
         // case 1 - top symbol is dollar
@@ -806,7 +728,7 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
                 // todo error handling panic mode  line numbers;
                 bool* followSet = firstFollowSets -> followSets[top -> symbolId];
                 while(currToken != NULL && !followSet[currToken -> tokenId]) {
-                    currToken = getNextToken();
+                    currToken = getNextToken(fp);
                 }
 
                 pop(top);
@@ -825,7 +747,7 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
             if (top -> symbolId == currToken -> tokenId) {
                 updateTerminalInfo(top -> refToParseTree, currToken -> lexeme, currToken -> linenum, currToken -> value);
                 top = pop(top);
-                currToken = getNextToken();
+                currToken = getNextToken(fp);
             }
 
             // case 2 - error
@@ -840,7 +762,7 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
                 // case - 2 input terminal does not match with top of stack
                 printf("Syntatic Error in the line number %d. Expecting %s instead of %s", currToken -> linenum, TerminalIDs[top -> symbolId], TerminalIDs[currToken -> tokenId]);
                 // getting next token 
-                currToken = getNextToken();
+                currToken = getNextToken(fp);
 
                 // assuming input token to be same as stack top to procede with parsing
                 pop(top); 
@@ -939,7 +861,6 @@ int main() {
     ParseTable table;
     table = createParseTable(firstAndFollowSets, table, grammar);
     printAllSets(firstAndFollowSets);
-    ParseTreeRoot* tree = parseInputSourceCode("outfile.txt", table, grammar, firstAndFollowSets);
+    ParseTreeRoot* tree = parseInputSourceCode("t1.txt", table, grammar, firstAndFollowSets);
     printParseTree(tree, "outfile.txt");
-
 }
