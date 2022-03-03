@@ -284,7 +284,6 @@ void printSets(_Bool* sets) {
 }
 
 // Function to print firstSets and followSets
-
 void printAllSets(FirstAndFollow* firstAndFollow) {
     for(int i = 0; i < NUM_NON_TERMINALS; i++) {
         printf("%s -> ", NonTerminalIDs[i]);
@@ -591,8 +590,241 @@ ParseTable createParseTable(FirstAndFollow* faft, ParseTable table, Grammar* gra
     return table;
 }
 
+ParseTreeNode* createNewTreeNode(bool type, int symbolId, int parentSymbolId, char* lexeme, int lineNumber, Value* value) {
+    ParseTreeNode* newNode = (ParseTreeNode *) malloc(sizeof(ParseTreeNode));
+    char nonTerminalLexeme[5] = "----";
+    newNode -> type = type;
+    newNode -> symbolId = symbolId;
+    newNode -> parentSymbolId = parentSymbolId;
+    newNode -> lexeme = type ? nonTerminalLexeme : lexeme;
+    newNode -> lineNumber = lineNumber;
+    newNode -> numberOfChildren = -1;
+    newNode -> children = NULL;
+    newNode -> value = value;
+    return newNode;
+}
+
+ParseTreeRoot* initializeTreeRoot() {
+    ParseTreeRoot* tree = (ParseTreeRoot *) malloc(sizeof(ParseTreeRoot));
+    tree -> root = createNewTreeNode(true, 0, -1, NULL, -1, NULL);
+    return tree;
+}
+
+Stack* createNewStackNode (bool type, int symbolId, ParseTreeNode* refToParseTree) {
+    Stack* newNode = (Stack *) malloc(sizeof(Stack));
+    newNode -> type = type;
+    newNode -> symbolId = symbolId;
+    newNode -> refToParseTree = refToParseTree;
+    newNode -> next = NULL;
+    return newNode;
+}
+
+Stack* initializeStack(ParseTreeNode* ref) {
+    Stack* top;
+    Stack* dollarNode = createNewStackNode(false, DOLLAR, NULL);
+    Stack* startNode = createNewStackNode(true, 0, ref);
+    startNode -> next = dollarNode;
+    top = startNode;
+    return top;
+}
+
+TokenInfo* getNextToken() {
+    
+};
+
+void pop(Stack* top) {
+    Stack* temp = top;
+    top = top -> next;
+    free(temp);
+}
+
+void pushProduction(Stack* top, ParseTreeNode** children, int size) {
+    for (int i = size - 1; i >= 0; i--) {
+        Stack* newNode = createNewStackNode(children[i] -> type, children[i] -> symbolId, children[i]);
+        newNode -> next = top;
+        top = newNode;
+    }
+}
+
+void populateParseTree (ParseTreeNode* parentRef, ParseTreeNode** children, int size) {
+    parentRef -> children = children;
+    parentRef -> numberOfChildren = size;
+}
+
+void updateTerminalInfo (ParseTreeNode* node, char* lexeme, int lineNum, Value* value) {
+    node -> lexeme = lexeme;
+    node -> lineNumber = lineNum;
+    node -> value = value;
+}
+
 // Prasing Input Source Code functions
-ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table) {};
+ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* grammar, FirstAndFollow* firstFollowSets) {
+    ParseTreeRoot* tree = initializeTreeRoot();
+    Stack* top = initializeStack(tree -> root);
+
+    bool isDone = false; // represents correct parsing without errors
+    bool hasLexcialError = false;
+    bool hasSyntaticError = false;
+    TokenInfo* currToken = getNextToken();
+
+    while(!isDone) {
+
+        // case 1 - top symbol is dollar
+        if (currToken -> tokenId == DOLLAR) {
+            if (top -> symbolId == DOLLAR) {
+                isDone = true;
+                pop(top);
+            } 
+            else {
+                // error handling
+                printf("Syntax Error in line number %d", currToken -> linenum);
+                break;
+            }
+        }
+
+        // case 2 - stack top is nonTerminal
+        else if (top -> type) {
+            // case 1 - match
+            if (table[top -> symbolId][currToken -> tokenId] != -1) {
+                int prodRuleNum = table[top -> symbolId][currToken -> tokenId];
+                
+                GrammarRule* rule = &(grammar -> productionRules[top -> symbolId].rules[prodRuleNum]);
+                SymbolLinkedList* symbolsList = rule -> rightHandSide;
+
+                ParseTreeNode* parentRef = top -> refToParseTree;
+                pop(top);
+
+                if (!rule -> isEpsilon) {
+                    ParseTreeNode** children = (ParseTreeNode **) malloc (rule -> size * sizeof(ParseTreeNode *));
+                
+                    for(int i = 0; i < rule -> size; i++) {
+                        children[i] = createNewTreeNode(symbolsList -> symbol.type, symbolsList -> symbol.symbolID, top -> symbolId, NULL, -1, NULL);
+                        symbolsList = symbolsList -> next;
+                    }
+
+                    pushProduction(top, children, rule -> size);
+                    populateParseTree(parentRef, children, rule -> size);
+                }
+            } 
+
+            // case 2 - error
+            else {
+                // todo error handling panic mode  line numbers;
+                bool* followSet = firstFollowSets -> followSets[top -> symbolId];
+                while(currToken != NULL && !followSet[currToken -> tokenId]) {
+                    currToken = getNextToken();
+                }
+
+                pop(top);
+                if (currToken == NULL) 
+                    break;
+                
+                hasSyntaticError = true;
+                
+                continue;
+            }
+        }
+        
+        // case 3 - stackTop is terminal
+        else if (top -> type == 0) {
+            // case 1 - match 
+            if (top -> symbolId == currToken -> tokenId) {
+                updateTerminalInfo(top -> refToParseTree, currToken -> lexeme, currToken -> linenum, currToken -> value);
+                pop(top);
+                currToken = getNextToken();
+            }
+
+            // case 2 - error
+            else {
+                // case - 1 input terminal is error
+                if (currToken -> isError) {
+                    hasLexcialError = true;
+                    // print lexcial error along with line
+                    printf("Lexical Error in the line number %d. %s does not match the language specifications", currToken -> linenum, currToken -> lexeme);    
+                }
+                
+                // case - 2 input terminal does not match with top of stack
+                printf("Syntatic Error in the line number %d. Expecting %s instead of %s", currToken -> linenum, TerminalIDs[top -> symbolId], TerminalIDs[currToken -> tokenId]);
+                // getting next token 
+                currToken = getNextToken();
+
+                // assuming input token to be same as stack top to procede with parsing
+                pop(top); 
+                continue;
+            }
+        }
+    }
+
+    if(!hasLexcialError && !hasSyntaticError && top == NULL) {
+        printf("Source Code parsed successfully \n");
+    }
+
+    return tree;
+};
+
+void printTreeNode(ParseTreeNode* node, FILE* fptr) {
+    // lexemeCurrentNode lineno tokenName valueIfNumber parentNodeSymbol isLeafNode(yes/no) NodeSymbol
+    char yes[3] = "yes";
+    char no[2] = "no";
+    char* lexeme = node -> lexeme;
+    int linenumber = node -> lineNumber;
+    bool isRealNum = node -> symbolId == REALNUM;
+    bool isNum = node -> symbolId == NUM;
+    int valueInt = 0;
+    int valueFloat = 0;
+    if (isNum) valueInt =  node -> value -> i;
+    if (isRealNum) valueFloat = node -> value -> f;
+    char* tokenName = node -> type ? NULL : TerminalIDs[node -> symbolId];
+    char* nodeSymbol = node -> type ? NonTerminalIDs[node -> symbolId] : NULL;
+    char* parentName = NonTerminalIDs[node -> parentSymbolId];
+    char* isLeafNode = node -> type ? yes : no;
+
+    // numbers
+    if (isRealNum) {
+        fprintf(fptr, "%s %d %s %f %s %s \n", lexeme, linenumber, tokenName, valueFloat, parentName, isLeafNode);
+    } 
+    else if (isNum) {
+        fprintf(fptr, "%s %d %s %d %s %s \n", lexeme, linenumber, tokenName, valueInt, parentName, isLeafNode);
+    }
+    // terminals
+    else if (node -> type == 0) {
+        fprintf(fptr, "%s %d %s %s %s \n", lexeme, linenumber, tokenName, parentName, isLeafNode);
+    }
+    // nonterminals
+    else if (node -> type) {
+        fprintf(fptr, "%s %s %s %s \n", lexeme, parentName, isLeafNode, nodeSymbol);
+    }
+};
+
+void printInorderTraversalToFile(ParseTreeNode* node, FILE* fptr) {
+    if (node -> children == NULL) {
+        printTreeNode(node, fptr);
+        return;
+    }
+
+    for(int i = 0; i < node -> numberOfChildren - 1; i++) {
+        printInorderTraversalToFile(node -> children[i], fptr);
+    }
+
+    printTreeNode(node, fptr);
+
+    printInorderTraversalToFile(node -> children[node -> numberOfChildren - 1], fptr);
+};
+
+void printParseTree(ParseTreeRoot* tree, char* outFile) {
+    // opening a file to print the parsetree
+    FILE* fptr;
+    fptr = fopen(outFile,"w");
+
+    // verifying sucessful opening
+    if(fptr == NULL){
+        printf("File opening unsucessfull");
+        return;
+    }
+
+    ParseTreeNode* root = tree -> root;
+    printInorderTraversalToFile(root, fptr);
+};
 
 int main() {
     Grammar* grammar;

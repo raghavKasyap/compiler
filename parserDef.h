@@ -118,6 +118,9 @@ typedef struct ParseTreeNode {
     int symbolId;
     int numberOfChildren;
     int parentSymbolId; // -1 for root node;
+    int lineNumber;
+    char* lexeme;
+    Value* value;
     struct ParseTreeNode** children;
 } ParseTreeNode;
 
