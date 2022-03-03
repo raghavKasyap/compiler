@@ -4,6 +4,8 @@
 #define NUM_TERMINALS 59
 #define EPS 58
 #define DOLLAR 57
+#define REALNUM 5
+#define NUM 4
 
 const char* TerminalIDs[] = {
     "TK_ASSIGNOP",
@@ -66,5 +68,18 @@ const char* TerminalIDs[] = {
     "DOLLAR",
     "EPS"
 };
+
+typedef union Value {
+    int i;
+    float f;
+ } Value;
+
+typedef struct TokenInfo {
+    int linenum;
+    char* lexeme;
+    int tokenId;
+    Value* value;
+    bool isError;
+} TokenInfo;
 
 #endif
