@@ -646,7 +646,7 @@ TokenInfo initializeToken(int lineNumber, char* lexeme, int tokenId, Value* valu
     return *newToken;
 }
 
-TokenInfo* getNextToken() {
+TokenInfo* getNextToken(FILE* fp) {
     TokenInfo* tokens = (TokenInfo*) malloc(62 * sizeof(TokenInfo));
 
     tokens[0] = initializeToken(1, "_main", 17, NULL, false);
@@ -750,11 +750,12 @@ void updateTerminalInfo (ParseTreeNode* node, char* lexeme, int lineNum, Value* 
 ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* grammar, FirstAndFollow* firstFollowSets) {
     ParseTreeRoot* tree = initializeTreeRoot();
     Stack* top = initializeStack(tree -> root);
+    FILE* fp = fopen(tokenFile, 'r');
 
     bool isDone = false; // represents correct parsing without errors
     bool hasLexcialError = false;
     bool hasSyntaticError = false;
-    TokenInfo* currToken = getNextToken();
+    TokenInfo* currToken = getNextToken(fp);
 
     while(!isDone) {
 
