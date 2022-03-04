@@ -425,27 +425,6 @@ void printAllSets(FirstAndFollow* firstAndFollow) {
     }
 }
 
-// Function to check validity of first sets and follow sets
-void checkValiditySets(FirstAndFollow* firstAndFollow) {
-    bool** firstSet = firstAndFollow -> firstSets;
-    bool** followSet = firstAndFollow -> followSets;
-    bool* commonTerminals = (_Bool *) malloc(NUM_TERMINALS * sizeof(_Bool));
-
-    for (int i = 0; i < NUM_NON_TERMINALS; i++) {
-        bool derivesEps = firstSet[i][EPS];
-        printf("%d -> ", NonTerminalIDs[i]);
-
-        if (derivesEps) {
-            for(int j = 0; j < NUM_TERMINALS; j++) {
-                if (firstSet[i] == followSet[i]) {
-                    commonTerminals[i] = true;
-                }
-            }
-        }
-        
-    }
-} 
-
 RHSNonTerminalAppearance** initialize_RHS_NT_Appearance() {
     RHSNonTerminalAppearance** rhsNonTerminalAppearance = (RHSNonTerminalAppearance **) malloc (NUM_NON_TERMINALS * sizeof(RHSNonTerminalAppearance *));
     
@@ -942,18 +921,18 @@ void printTreeNode(ParseTreeNode* node, FILE* fptr) {
 
     // numbers
     if (isRealNum) {
-        fprintf(fptr, "%s %d %s %f %s %s \n", lexeme, linenumber, tokenName, valueFloat, parentName, isLeafNode);
+        printf("%s %d %s %f %s %s \n", lexeme, linenumber, tokenName, valueFloat, parentName, isLeafNode);
     } 
     else if (isNum) {
-        fprintf(fptr, "%s %d %s %d %s %s \n", lexeme, linenumber, tokenName, valueInt, parentName, isLeafNode);
+        printf("%s %d %s %d %s %s \n", lexeme, linenumber, tokenName, valueInt, parentName, isLeafNode);
     }
     // terminals
     else if (node -> type == 0) {
-        fprintf(fptr, "%s %d %s %s %s \n", lexeme, linenumber, tokenName, parentName, isLeafNode);
+        printf("%s %d %s %s %s \n", lexeme, linenumber, tokenName, parentName, isLeafNode);
     }
     // nonterminals
     else if (node -> type) {
-        fprintf(fptr, "%s %s %s %s \n", lexeme, parentName, isLeafNode, nodeSymbol);
+        printf("%s %s %s %s \n", lexeme, parentName, isLeafNode, nodeSymbol);
     }
 };
 

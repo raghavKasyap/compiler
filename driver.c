@@ -60,13 +60,11 @@ int main() {
             ParseTable table;
             table = createParseTable(firstAndFollowSets, table, grammar);
             ParseTreeRoot* tree = parseInputSourceCode(sourcefile, table, grammar, firstAndFollowSets);
-            printParseTree(tree,"outfile.txt");
-
 
             end_time = clock();
             total_CPU_time = (double) (end_time - start_time);
             total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
-            printf("total_CPU_time = %f \n total_CPU_time_in_seconds = %f seconds",total_CPU_time,total_CPU_time_in_seconds);
+            printf("\nTotal CPU Time = %.2f clocks \nTotal CPU Time(in secs) = %.3f seconds \n \n", total_CPU_time, total_CPU_time_in_seconds);
         }
     }
     return 0;
