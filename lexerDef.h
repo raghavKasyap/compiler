@@ -11,11 +11,13 @@
 #define REALNUM 5
 #define NUM 4
 
+// data structure for storing the value of number (integer / real number)
 typedef union Value {
     int i;
     float f;
  } Value;
 
+// token datasturcture
 typedef struct TokenInfo {
     int linenum;
     char* lexeme;
@@ -24,6 +26,7 @@ typedef struct TokenInfo {
     bool isError;
 } TokenInfo;
 
+// symbol table datastructure
 typedef struct Symbol_Table_Record {
     TokenInfo* tk_info;
     struct Symbol_Table_Record* nextRecord;

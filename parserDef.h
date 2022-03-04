@@ -55,8 +55,10 @@ typedef struct RHSNonTerminalAppearance {
     struct RHSNonTerminalAppearance* tail;
 } RHSNonTerminalAppearance;
 
+// parseTable datastructure
 typedef int** ParseTable;
 
+// parsetTreeNode datastructure
 typedef struct ParseTreeNode {
     bool type;
     int symbolId;
@@ -64,10 +66,11 @@ typedef struct ParseTreeNode {
     int parentSymbolId; // -1 for root node;
     int lineNumber;
     char* lexeme;
-    Value* value;
+    Value* value; // contains values if numbers
     struct ParseTreeNode** children;
 } ParseTreeNode;
 
+// stack datastructure for predictive parsing
 typedef struct Stack {
     bool type;
     int symbolId;
@@ -75,6 +78,7 @@ typedef struct Stack {
     struct Stack* next;
 } Stack;
 
+// root node datastructure
 typedef struct ParseTreeRoot {
     ParseTreeNode* root;
 } ParseTreeRoot;

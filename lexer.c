@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+
 const char *keywords[28] = {
     "with",
     "parameters",
@@ -34,16 +35,17 @@ const char *keywords[28] = {
     "call",
     "record",
     "endrecord",
-    "else"};
+    "else"
+};
 
 int keyword_ids[28] = {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 23, 24, 25, 26, 31, 34, 35, 36, 37, 38, 39, 44, 45, 46, 47};
 
+// initialzing global variable used by lexer
 char buff[2][BLOCK_SIZE];
 int dfa_state = 1;
 int linenum = 1;
 int inputexhausted = 0;
 int buffload = 0;
-int fileended = 0;
 int buffcurr = 1;
 char *ptr1 = NULL;
 char *ptr2 = NULL;
@@ -70,7 +72,7 @@ int getStream(FILE *fp)
         printf("Error: Input Buffers failed to be loaded\n");
         return -1;
     }
-
+    
     return noOfChars;
 }
 
@@ -112,11 +114,6 @@ char getnextchar(FILE *fp)
                 return EOF;
             }
             ptr2 = buff[buffcurr];
-        }
-        else if (*ptr2 == EOF)
-        {
-            fileended = 1;
-            return ' ';
         }
         else
         {
@@ -230,18 +227,17 @@ TokenInfo *insertEntry(Symbol_Table_Record **Symbol_Table, char *lexeme, int lin
     return tk_info;
 };
 
+// creating new value for number tokens
 Value *createNewValue(char *val, int tokenId)
 {
     Value *value = (Value *)malloc(sizeof(Value));
     if (tokenId == 4)
     {
         value->i = atoi(val);
-        printf("value of number %d \n", value->i);
     }
     else if (tokenId == 5)
     {
         value->f = atof(val);
-        printf("value of real number %f \n", value->f);
     }
     return value;
 };
@@ -280,6 +276,7 @@ char *getsubstring(char *start, char *end)
     return s;
 }
 
+// mimics the DFA of lexical analizer which is called by parser to fetch next token
 TokenInfo *getNextToken(FILE *fp)
 {
     dfa_state = 1;
@@ -290,8 +287,11 @@ TokenInfo *getNextToken(FILE *fp)
     while (1)
     {
         c = getnextchar(fp);
-        if (fileended)
-            return createToken("DOLLAR", linenum, NULL, DOLLAR, false);
+        // if (fileended) {
+        //     fileended = 0;
+        //     return createToken("DOLLAR", linenum, NULL, DOLLAR, false);
+        // }
+            
 
         switch (dfa_state)
         {
@@ -408,8 +408,14 @@ TokenInfo *getNextToken(FILE *fp)
                 ptr1++;
                 dfa_state = 1;
             }
-            else if (c == '^')
+            else if (c == '^'){
+                ptr1 = NULL;
+                ptr2 = NULL;
+                inputexhausted = 0;
+                linenum = 0;
                 return createToken("DOLLAR", linenum, NULL, DOLLAR, false);
+            }
+                
             else
             {
                 dfa_state = 70;
@@ -1261,6 +1267,7 @@ TokenInfo *getNextToken(FILE *fp)
     }
 }
 
+// helper function to remove comments
 void removeComments(FILE *fptr1, FILE *fptr2)
 {
     while (!feof(fptr1))

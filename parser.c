@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "lexer.h"
 
+// array of terminal strings
 const char *TerminalIDs[] = {
     "TK_ASSIGNOP",
     "TK_COMMENT",
@@ -66,6 +67,7 @@ const char *TerminalIDs[] = {
     "DOLLAR",
     "EPS"};
 
+// array of non-terminal strings
 const char *NonTerminalIDs[] = {
     "program",
     "otherFunctions",
@@ -122,19 +124,18 @@ const char *NonTerminalIDs[] = {
     "a"};
 
 // print tokens in source code file
-void printTokenInFile(char *sourceFile)
+void printTokenInFile(FILE* fptr1)
 {
-    FILE *fptr3 = fopen(sourceFile, "r");
     while (1)
     {
-        TokenInfo *tk = getNextToken(fptr3);
+        TokenInfo *tk = getNextToken(fptr1);
         printf("%d ", tk->linenum);
         printf("%s ", tk->lexeme);
         printf("%s \n", TerminalIDs[tk->tokenId]);
         if (tk->tokenId == DOLLAR)
             break;
     }
-    fclose(fptr3);
+    
 }
 
 // Function to fetch the Non-Terminal ID of non_terminal from NonTerminalIDs array
@@ -182,10 +183,10 @@ Grammar *initGrammar()
     for (int i = 0; i < NUM_NON_TERMINALS; i++)
     {
         ProductionRules *currNonTerminalProds = &(grammar->productionRules[i]);
-        currNonTerminalProds->nonTerminalId = i;
-        currNonTerminalProds->rules = (GrammarRule *)malloc(INITIAL_MAX_PRODUCTIONS * sizeof(GrammarRule));
-        currNonTerminalProds->currSize = 0;
-        currNonTerminalProds->maxSize = INITIAL_MAX_PRODUCTIONS;
+        currNonTerminalProds -> nonTerminalId = i;
+        currNonTerminalProds -> rules = (GrammarRule *)malloc(INITIAL_MAX_PRODUCTIONS * sizeof(GrammarRule));
+        currNonTerminalProds -> currSize = 0;
+        currNonTerminalProds -> maxSize = INITIAL_MAX_PRODUCTIONS;
     }
 
     return grammar;
@@ -195,9 +196,9 @@ Grammar *initGrammar()
 GrammarRule *createNewRule(SymbolLinkedList *rightHandSide, int size)
 {
     GrammarRule *newRule = (GrammarRule *)malloc(sizeof(GrammarRule));
-    newRule->rightHandSide = rightHandSide;
-    newRule->isEpsilon = rightHandSide->symbol.type == 0 && rightHandSide->symbol.symbolID == EPS ? 1 : 0;
-    newRule->size = size;
+    newRule -> rightHandSide = rightHandSide;
+    newRule -> isEpsilon = rightHandSide -> symbol.type == 0 && rightHandSide -> symbol.symbolID == EPS ? 1 : 0;
+    newRule -> size = size;
     return newRule;
 }
 
@@ -206,17 +207,17 @@ void addNewRuleToGrammar(Grammar *grammar, int nonTerminalId, GrammarRule *newRu
 {
     ProductionRules *currNonTerminalProds = &(grammar->productionRules[nonTerminalId]);
 
-    if (currNonTerminalProds->currSize < currNonTerminalProds->maxSize)
+    if (currNonTerminalProds -> currSize < currNonTerminalProds -> maxSize)
     {
-        currNonTerminalProds->rules[currNonTerminalProds->currSize] = *newRule;
-        currNonTerminalProds->currSize++;
+        currNonTerminalProds -> rules[currNonTerminalProds -> currSize] = *newRule;
+        currNonTerminalProds -> currSize++;
     }
     else
     {
-        currNonTerminalProds->maxSize = currNonTerminalProds->maxSize + ADDITIONAL_PRODUCTIONS_SIZE;
-        currNonTerminalProds->rules = (GrammarRule *)realloc(currNonTerminalProds->rules, sizeof(GrammarRule) * currNonTerminalProds->maxSize);
-        currNonTerminalProds->rules[currNonTerminalProds->currSize] = *newRule;
-        currNonTerminalProds->currSize++;
+        currNonTerminalProds -> maxSize = currNonTerminalProds -> maxSize + ADDITIONAL_PRODUCTIONS_SIZE;
+        currNonTerminalProds -> rules = (GrammarRule *)realloc(currNonTerminalProds -> rules, sizeof(GrammarRule) * currNonTerminalProds->maxSize);
+        currNonTerminalProds -> rules[currNonTerminalProds -> currSize] = *newRule;
+        currNonTerminalProds -> currSize++;
     }
 }
 
@@ -229,16 +230,19 @@ Grammar *generateGrammarFromFile(char *fileName)
     while (!feof(fptr))
     {
         char productionRule[200];
-        fgets(productionRule, 200, fptr);
-        char *symbol = strtok(productionRule, " ");
+        fgets(productionRule, 200, fptr); // gets entire grammar line
+
+        char *symbol = strtok(productionRule, " "); // tokenizes at space delimeter
         int nonTerminalId = fetchNonTerminalId(symbol);
-        // printf("%d", nonTerminalId);
-        // printf(" ");
+    
+        // declaring the right hand side of the grammar rule
         SymbolLinkedList *rightHandSide = (SymbolLinkedList *)malloc(sizeof(SymbolLinkedList));
         SymbolLinkedList *currHead = rightHandSide;
+
         int size = 0;
         currHead->next = NULL;
 
+        // populating the RHS of the grammar rule into rightHandSide datastructure
         while (symbol != NULL)
         {
             symbol = strtok(NULL, " ");
@@ -246,24 +250,23 @@ Grammar *generateGrammarFromFile(char *fileName)
             {
                 break;
             }
+
             Symbol newSymbol = createSymbol(symbol);
             SymbolLinkedList *nextSymbolInRule = (SymbolLinkedList *)malloc(sizeof(SymbolLinkedList));
+
             size++;
-            nextSymbolInRule->symbol = newSymbol;
-            nextSymbolInRule->next = NULL;
-            currHead->next = nextSymbolInRule;
-            currHead = currHead->next;
-            // printf("%d", newSymbol.symbolID);
-            // printf(" ");
+
+            nextSymbolInRule -> symbol = newSymbol;
+            nextSymbolInRule -> next = NULL;
+            currHead -> next = nextSymbolInRule;
+            currHead = currHead -> next;
         }
 
         // creating newRule;
-        GrammarRule *newRule = createNewRule(rightHandSide->next, size);
+        GrammarRule *newRule = createNewRule(rightHandSide -> next, size);
 
         // Adding newRule to grammar
         addNewRuleToGrammar(grammar, nonTerminalId, newRule);
-
-        // printf("\n");
     }
 
     fclose(fptr);
@@ -292,9 +295,11 @@ _Bool **initializeTable()
 // Helper function to initialize FirstAndFollow data structure
 FirstAndFollow *initializeFirstAndFollow()
 {
-    FirstAndFollow *firstAndFollowSets = (FirstAndFollow *)malloc(sizeof(FirstAndFollow));
-    firstAndFollowSets->firstSets = initializeTable();
-    firstAndFollowSets->followSets = initializeTable();
+    FirstAndFollow *firstAndFollowSets = (FirstAndFollow *)malloc(sizeof(FirstAndFollow)); 
+
+    firstAndFollowSets -> firstSets = initializeTable();
+    firstAndFollowSets -> followSets = initializeTable();
+
     return firstAndFollowSets;
 }
 
@@ -308,6 +313,7 @@ void unionSets(bool *set, bool *tempSet)
     }
 }
 
+// function for computing the first set of a terminal
 bool *computeFirstSetTerminal(int terminalId)
 {
     bool *firstSetTerminal = (_Bool *)(malloc(NUM_TERMINALS * sizeof(_Bool)));
@@ -319,37 +325,45 @@ bool *computeFirstSetTerminal(int terminalId)
     return firstSetTerminal;
 }
 
+// helper function for getting the production rules of a non-terminal
 ProductionRules *fetchNonTerminal(Grammar *grammar, int nonTerminalId)
 {
     return &(grammar->productionRules[nonTerminalId]);
 }
 
+// function for computing the first set of a rule (alpha) where alpha is A -> alpha
 bool *computeFirstSetRule(GrammarRule *rule, Grammar *grammar, bool **firstSets, bool *isCalculated)
 {
     bool *firstSetRule = (_Bool *)(malloc(NUM_TERMINALS * sizeof(_Bool)));
 
+    // initializing first set of a rule
     for (int i = 0; i < NUM_TERMINALS; i++)
         firstSetRule[i] = false;
 
+    // handles when rule is epsilon
     if (rule->isEpsilon)
     {
         firstSetRule[EPS] = true;
         return firstSetRule;
     }
 
+    // fetching the alpha
     SymbolLinkedList *currHead = rule->rightHandSide;
     Symbol currSymbol = currHead->symbol;
 
+    // handles the case where current symbol is terminal
     if (currSymbol.type == 0)
     {
         return computeFirstSetTerminal(currSymbol.symbolID);
     }
 
+    // memoization-returning the first set of a symbol if it is already calculated 
     if (isCalculated[currSymbol.symbolID] == true)
     {
         bool *tempFirstSet = firstSets[currSymbol.symbolID];
         unionSets(firstSetRule, tempFirstSet);
 
+        // A -> y1 y2 y3   where y1 -> eps
         while (tempFirstSet[EPS] && currHead->next != NULL)
         {
             currHead = currHead->next;
@@ -367,6 +381,7 @@ bool *computeFirstSetRule(GrammarRule *rule, Grammar *grammar, bool **firstSets,
             unionSets(firstSetRule, tempFirstSet);
         }
 
+        // A -> y1 y2 y3   where  y1,y2,y3 -> eps   then A -> eps
         if (currHead->next == NULL && currHead->symbol.type == 1 && firstSets[currHead->symbol.symbolID][EPS])
         {
             firstSetRule[EPS] = true;
@@ -375,6 +390,7 @@ bool *computeFirstSetRule(GrammarRule *rule, Grammar *grammar, bool **firstSets,
         return firstSetRule;
     };
 
+    // recursively calculating first set of the non-terminal which is not yet calculated
     ProductionRules *currNonTerminal = fetchNonTerminal(grammar, currSymbol.symbolID);
     bool *tempFirstSet = computeFirstSetNonTerminal(currNonTerminal, grammar, firstSets, isCalculated);
     unionSets(firstSetRule, tempFirstSet);
@@ -404,6 +420,7 @@ bool *computeFirstSetRule(GrammarRule *rule, Grammar *grammar, bool **firstSets,
     return firstSetRule;
 }
 
+// recursive function for first set of non-terminal
 bool *computeFirstSetNonTerminal(ProductionRules *currNonTerminal, Grammar *grammar, bool **firstSets, bool *isCalculated)
 {
     bool *firstSet = (_Bool *)(malloc(NUM_TERMINALS * sizeof(_Bool)));
@@ -432,9 +449,7 @@ bool *computeFirstSetNonTerminal(ProductionRules *currNonTerminal, Grammar *gram
     return firstSet;
 }
 
-// utility functions for debugging & printing to console.
-
-// Function for printing the RHS location of each non_terminal
+// debugging function for printing the RHS location of each non_terminal
 void printRHS(RHSNonTerminalAppearance **rhs)
 {
     for (int i = 0; i < NUM_NON_TERMINALS; i++)
@@ -451,7 +466,7 @@ void printRHS(RHSNonTerminalAppearance **rhs)
     }
 }
 
-// Function for printing first sets and follow sets
+// debugging function for printing first sets and follow sets
 void printSets(_Bool *sets)
 {
     for (int i = 0; i < NUM_TERMINALS; i++)
@@ -464,7 +479,7 @@ void printSets(_Bool *sets)
     }
 }
 
-// Function to print firstSets and followSets
+// debugging function to print firstSets and followSets of all non-terminals
 void printAllSets(FirstAndFollow *firstAndFollow)
 {
     for (int i = 0; i < NUM_NON_TERMINALS; i++)
@@ -477,7 +492,7 @@ void printAllSets(FirstAndFollow *firstAndFollow)
     }
 }
 
-// Function to check validity of first sets and follow sets
+// debugging function to check validity of first sets and follow sets
 void checkValiditySets(FirstAndFollow *firstAndFollow)
 {
     bool **firstSet = firstAndFollow->firstSets;
@@ -502,6 +517,7 @@ void checkValiditySets(FirstAndFollow *firstAndFollow)
     }
 }
 
+// initiating the RHSNonTerminalAppearance datasturcture
 RHSNonTerminalAppearance **initialize_RHS_NT_Appearance()
 {
     RHSNonTerminalAppearance **rhsNonTerminalAppearance = (RHSNonTerminalAppearance **)malloc(NUM_NON_TERMINALS * sizeof(RHSNonTerminalAppearance *));
@@ -516,6 +532,7 @@ RHSNonTerminalAppearance **initialize_RHS_NT_Appearance()
     return rhsNonTerminalAppearance;
 }
 
+// creating a new node
 RHSNonTerminalAppearance *createNewNode(int nonTerminalId, int productionNum)
 {
     RHSNonTerminalAppearance *newNode = (RHSNonTerminalAppearance *)malloc(sizeof(RHSNonTerminalAppearance));
@@ -528,6 +545,7 @@ RHSNonTerminalAppearance *createNewNode(int nonTerminalId, int productionNum)
     return newNode;
 }
 
+// function to populate the RHSNonTerminalApperanace datastructure
 void populateRHSAppearance(RHSNonTerminalAppearance **rhsNonTerminalAppearance, Grammar *grammar)
 {
     for (int i = 0; i < NUM_NON_TERMINALS; i++)
@@ -551,6 +569,7 @@ void populateRHSAppearance(RHSNonTerminalAppearance **rhsNonTerminalAppearance, 
     }
 }
 
+// utility function to check if follow set does not contain any teminal
 bool checkAllFalse(bool *followSet)
 {
     bool allFalse = true;
@@ -562,6 +581,7 @@ bool checkAllFalse(bool *followSet)
     return allFalse;
 }
 
+// creating a base follow set for start symbol (program)
 bool *createNewBaseFollowSet()
 {
     bool *tempFollowSet = (_Bool *)(malloc(NUM_TERMINALS * sizeof(_Bool)));
@@ -573,6 +593,7 @@ bool *createNewBaseFollowSet()
     return tempFollowSet;
 }
 
+// computing follow set for a rule
 bool *computeFollowSetRule(int currNtId, int currRuleNt, GrammarRule *rule, Grammar *grammar, bool **firstSets, bool **followSets, bool *isCalculated, RHSNonTerminalAppearance **rhsNtAppearance, bool *prevCalledNts)
 {
     // search for the currNonTerminalLocation
@@ -641,6 +662,7 @@ bool *computeFollowSetRule(int currNtId, int currRuleNt, GrammarRule *rule, Gram
     return followSetRule;
 }
 
+// computing the follow set of a non-terminal
 bool *computeFollowSetNonTerminal(int currNtId, RHSNonTerminalAppearance **rhsNtAppearance, Grammar *grammar, bool **firstSets, bool **followSets, bool *isCalculated, bool *prevCalledNts)
 {
     if (isCalculated[currNtId] == true && !checkAllFalse(followSets[currNtId]))
@@ -687,6 +709,7 @@ bool *computeFollowSetNonTerminal(int currNtId, RHSNonTerminalAppearance **rhsNt
     return followSet;
 }
 
+// encapsulates the creation of first & follow sets for the grammar
 FirstAndFollow *computeFirstAndFollowSets(Grammar *grammar)
 {
     FirstAndFollow *firstAndFollowSets = initializeFirstAndFollow();
@@ -729,6 +752,7 @@ FirstAndFollow *computeFirstAndFollowSets(Grammar *grammar)
 }
 
 // Parse Table Functions
+// initializing parse table
 ParseTable initializeParseTable()
 {
     ParseTable table = (ParseTable)malloc(NUM_NON_TERMINALS * sizeof(int *));
@@ -745,6 +769,7 @@ ParseTable initializeParseTable()
     return table;
 }
 
+// populating the parse table
 ParseTable populateParseTable(FirstAndFollow *faft, ParseTable table, GrammarRule *alpha, int nonTerminalId, int prodNum)
 {
     // derives epsilon directly
@@ -810,6 +835,7 @@ ParseTable populateParseTable(FirstAndFollow *faft, ParseTable table, GrammarRul
     return table;
 }
 
+// encapsulates parse table creation
 ParseTable createParseTable(FirstAndFollow *faft, ParseTable table, Grammar *grammar)
 {
     table = initializeParseTable();
@@ -831,26 +857,31 @@ ParseTable createParseTable(FirstAndFollow *faft, ParseTable table, Grammar *gra
     return table;
 }
 
+// helper function to create a new tree node for the parse tree
 ParseTreeNode *createNewTreeNode(bool type, int symbolId, int parentSymbolId, char *lexeme, int lineNumber, Value *value)
 {
     ParseTreeNode *newNode = (ParseTreeNode *)malloc(sizeof(ParseTreeNode));
     char *nonTerminalLexeme = (char *)malloc(5 * sizeof(char));
+
     nonTerminalLexeme[0] = '-';
     nonTerminalLexeme[1] = '-';
     nonTerminalLexeme[2] = '-';
     nonTerminalLexeme[3] = '-';
     nonTerminalLexeme[4] = '\0';
-    newNode->type = type;
-    newNode->symbolId = symbolId;
-    newNode->parentSymbolId = parentSymbolId;
-    newNode->lexeme = type ? nonTerminalLexeme : lexeme;
-    newNode->lineNumber = lineNumber;
-    newNode->numberOfChildren = -1;
-    newNode->children = NULL;
-    newNode->value = value;
+
+    newNode -> type = type;
+    newNode -> symbolId = symbolId;
+    newNode -> parentSymbolId = parentSymbolId;
+    newNode -> lexeme = type ? nonTerminalLexeme : lexeme;
+    newNode -> lineNumber = lineNumber;
+    newNode -> numberOfChildren = -1;
+    newNode -> children = NULL;
+    newNode -> value = value;
+
     return newNode;
 }
 
+// initialing the root of the parse tree
 ParseTreeRoot *initializeTreeRoot()
 {
     ParseTreeRoot *tree = (ParseTreeRoot *)malloc(sizeof(ParseTreeRoot));
@@ -858,29 +889,33 @@ ParseTreeRoot *initializeTreeRoot()
     return tree;
 }
 
+// creating a new stack node
 Stack *createNewStackNode(bool type, int symbolId, ParseTreeNode *refToParseTree)
 {
     Stack *newNode = (Stack *)malloc(sizeof(Stack));
-    newNode->type = type;
-    newNode->symbolId = symbolId;
-    newNode->refToParseTree = refToParseTree;
-    newNode->next = NULL;
+
+    newNode -> type = type;
+    newNode -> symbolId = symbolId;
+    newNode -> refToParseTree = refToParseTree;
+    newNode -> next = NULL;
+
     return newNode;
 }
 
+// initializing the stact with DOLLAR and start symbol
 Stack *initializeStack(ParseTreeNode *ref)
 {
     Stack *top;
     Stack *dollarNode = createNewStackNode(false, DOLLAR, NULL);
     Stack *startNode = createNewStackNode(true, 0, ref);
+
     startNode->next = dollarNode;
     top = startNode;
+
     return top;
 }
 
-int currTokenNumber = 0;
-TokenInfo *tokens = NULL;
-
+// poping the top of the stack
 Stack *pop(Stack *top)
 {
     Stack *temp = top;
@@ -889,6 +924,7 @@ Stack *pop(Stack *top)
     return top;
 }
 
+// pushing a production rule onto the stack in reverse order
 Stack *pushProduction(Stack *top, ParseTreeNode **children, int size)
 {
     for (int i = size - 1; i >= 0; i--)
@@ -900,12 +936,14 @@ Stack *pushProduction(Stack *top, ParseTreeNode **children, int size)
     return top;
 }
 
+// populating the children of a node
 void populateParseTree(ParseTreeNode *parentRef, ParseTreeNode **children, int size)
 {
     parentRef->children = children;
     parentRef->numberOfChildren = size;
 }
 
+// updating terminal info in the parsetree upon recieving the lexeme
 void updateTerminalInfo(ParseTreeNode *node, char *lexeme, int lineNum, Value *value)
 {
     node->lexeme = lexeme;
@@ -918,7 +956,6 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
 {
     ParseTreeRoot *tree = initializeTreeRoot();
     Stack *top = initializeStack(tree->root);
-    appendlastchar(tokenFile);
     FILE *fp = fopen(tokenFile, "r");
 
     bool isDone = false; // represents correct parsing without errors
@@ -937,11 +974,13 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
             {
                 isDone = true;
                 top = pop(top);
+                fclose(fp);
             }
             else
             {
                 // error handling
                 printf("Syntax Error in line number %d \n", currToken->linenum);
+                printf("Top of stack type = %d  token = %d \n", top -> type, top -> symbolId);
                 break;
             }
         }
@@ -949,6 +988,7 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
         {
             currToken = getNextToken(fp);
         }
+
         // case 2 - stack top is nonTerminal
         else if (top->type)
         {
@@ -985,31 +1025,51 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
                 }
             }
 
-            // case 2 - error
+            // case 2 - error no production exists
             else
             {
-
-                // todo error handling panic mode  line numbers;
-                bool *followSet = firstFollowSets->followSets[top->symbolId];
-
-                while (currToken->tokenId != DOLLAR && !followSet[currToken->tokenId])
+                // case - 1 input terminal is error
+                if (currToken->isError)
                 {
-                    printf("%s", currToken->lexeme);
+                    hasLexcialError = true;
+                    // print lexcial error along with line
+                    printf("Lexical Error in the line number %d. %s does not match the language specifications \n", currToken -> linenum, currToken->lexeme);
+                } 
+
+                // case - 2 no production exists
+                else {
+                    printf("Syntatic Error in line number %d. Expecting any of [ ", currToken->linenum);
+
+                    for (int i = 0; i < NUM_TERMINALS; i++)
+                    {
+                        if (firstFollowSets->firstSets[top->symbolId][i])
+                        {
+                            printf("%s ,", TerminalIDs[i]);
+                        }
+                    }
+
+                    printf("], but received %s \n", TerminalIDs[currToken->tokenId]);
+                }
+
+                
+                // error recovery panic mode.
+                bool *followSet = firstFollowSets -> followSets[top->symbolId];
+
+                while (currToken -> tokenId != DOLLAR && !followSet[currToken -> tokenId]) {
                     currToken = getNextToken(fp);
                 }
 
+                // pop stack top. 
                 top = pop(top);
-                if (currToken->tokenId != DOLLAR)
-                    break;
-
                 hasSyntaticError = true;
 
-                continue;
+                if (currToken -> tokenId == DOLLAR) 
+                    isDone = true;
             }
         }
 
         // case 3 - stackTop is terminal
-        else if (top->type == 0)
+        else if (top -> type == 0)
         {
             // case 1 - match
             if (top->symbolId == currToken->tokenId)
@@ -1032,77 +1092,90 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
 
                 // case - 2 input terminal does not match with top of stack
                 printf("Syntatic Error in the line number %d. Received %s lexeme. Expecting %s instead of %s \n", currToken->linenum, currToken->lexeme, TerminalIDs[top->symbolId], TerminalIDs[currToken->tokenId]);
-                // getting next token
 
-                currToken = getNextToken(fp);
+                hasSyntaticError = true;
+                // getting next token
 
                 // assuming input token to be same as stack top to procede with parsing
                 top = pop(top);
-
-                continue;
+                currToken = getNextToken(fp);
             }
         }
     }
 
-    if (!hasLexcialError && !hasSyntaticError && top == NULL)
+    if (!hasLexcialError && !hasSyntaticError)
     {
+        printf("\n********************************** \n");
         printf("Source Code parsed successfully \n");
+        printf("**********************************\n");
+        return tree;
     }
-
-    return tree;
+    else{
+        printf("\n************************************* \n");
+        printf("Source Code is not syntactically correct. Please Recheck \n");
+        printf("*************************************\n");
+        return NULL;
+    }
 };
 
+// helper to print a tree node in required structure
 void printTreeNode(ParseTreeNode *node, FILE *fptr)
 {
     // lexemeCurrentNode lineno tokenName valueIfNumber parentNodeSymbol isLeafNode(yes/no) NodeSymbol
     char *yes = (char *)malloc(4 * sizeof(char));
     char *no = (char *)malloc(3 * sizeof(char));
+
     yes[0] = 'y';
     yes[1] = 'e';
     yes[2] = 's';
     yes[3] = '\0';
+
     no[0] = 'n';
     no[1] = 'o';
     no[2] = '\0';
-    char *lexeme = node->lexeme;
-    int linenumber = node->lineNumber;
-    bool isRealNum = node->symbolId == REALNUM;
-    bool isNum = node->symbolId == NUM;
+
+    char *lexeme = node -> lexeme;
+    int linenumber = node -> lineNumber;
+    bool isRealNum = node -> symbolId == REALNUM;
+    bool isNum = node -> symbolId == NUM;
+
     int valueInt = 0;
     float valueFloat = 0;
+
     if (isNum)
-        valueInt = node->value == NULL ? -1 : node->value->i;
+        valueInt = node -> value == NULL ? -1 : node -> value->i;
     if (isRealNum)
     {
-        valueFloat = node->value == NULL ? -1 : node->value->f;
+        valueFloat = node -> value == NULL ? -1 : node -> value->f;
     }
 
-    char *tokenName = node->type ? NULL : TerminalIDs[node->symbolId];
-    char *nodeSymbol = node->type ? NonTerminalIDs[node->symbolId] : NULL;
-    char *parentName = NonTerminalIDs[node->parentSymbolId];
-    char *isLeafNode = !node->type ? yes : no;
+    char *tokenName = node -> type ? NULL : TerminalIDs[node -> symbolId];
+    char *nodeSymbol = node -> type ? NonTerminalIDs[node -> symbolId] : NULL;
+    char *parentName = NonTerminalIDs[node -> parentSymbolId];
+    char *isLeafNode  =  !node -> type ? yes : no;
 
     // numbers
     if (isRealNum)
     {
-        printf("%s %d %s %f %s %s \n", lexeme, linenumber, tokenName, valueFloat, parentName, isLeafNode);
+        fprintf(fptr, "%s %d %s %f %s %s \n", lexeme, linenumber, tokenName, valueFloat, parentName, isLeafNode);
     }
     else if (isNum)
     {
-        printf("%s %d %s %d %s %s \n", lexeme, linenumber, tokenName, valueInt, parentName, isLeafNode);
+        fprintf(fptr, "%s %d %s %d %s %s \n", lexeme, linenumber, tokenName, valueInt, parentName, isLeafNode);
     }
     // terminals
     else if (node->type == 0)
     {
-        printf("%s %d %s %s %s \n", lexeme, linenumber, tokenName, parentName, isLeafNode);
+        fprintf(fptr, "%s %d %s %s %s \n", lexeme, linenumber, tokenName, parentName, isLeafNode);
     }
     // nonterminals
     else if (node->type)
     {
-        printf("%s %s %s %s \n", lexeme, parentName, isLeafNode, nodeSymbol);
+        fprintf(fptr, "%s %s %s %s \n", lexeme, parentName, isLeafNode, nodeSymbol);
     }
 };
 
+// inorder traversal of the parse tree
 void printInorderTraversalToFile(ParseTreeNode *node, FILE *fptr)
 {
     if (node->children == NULL)
@@ -1121,6 +1194,7 @@ void printInorderTraversalToFile(ParseTreeNode *node, FILE *fptr)
     printInorderTraversalToFile(node->children[node->numberOfChildren - 1], fptr);
 };
 
+// printing parse tree to outfile.txt
 void printParseTree(ParseTreeRoot *tree, char *outFile)
 {
     // opening a file to print the parsetree

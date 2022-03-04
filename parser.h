@@ -10,7 +10,7 @@
 Grammar * generateGrammarFromFile(char* fileName);
 bool* computeFirstSetNonTerminal(ProductionRules* currNonTerminal, Grammar* grammar, bool** firstSets, bool* isCalculated);
 bool *computeFollowSetNonTerminal(int currNtId, RHSNonTerminalAppearance **rhsNtAppearance, Grammar *grammar, bool **firstSets, bool **followSets, bool *isCalculated, bool* prevCalledNts);
-void printTokenInFile(char* sourceFile);
+void printTokenInFile(FILE* fptr1);
 
 // core functions of parser.c file
 FirstAndFollow *computeFirstAndFollowSets(Grammar *grammar);

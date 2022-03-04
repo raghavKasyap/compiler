@@ -10,63 +10,102 @@
 #include "lexer.h"
 #include "parser.h"
 
+// function for printing cmd line interface
+void printInterface(){
+    printf("Press 0 for exit\n");
+    printf("Press 1 for clean code without comments\n");
+    printf("Press 2 to get all the tokens of the source code from the lexer\n");
+    printf("Press 3 to parse the source code\n");
+    printf("Press 4 to get the total time taken for parsing\n");
+}
+
 
 int main() {
     char* sourcefile = "t1.txt";
-    appendlastchar(sourcefile);
+
+    // appending utility character to the source file
+    appendlastchar(sourcefile); 
+
+    //
     initialize_Symbol_Table();
+
     Grammar* grammar;
     FirstAndFollow* firstAndFollowSets;
+
+    // driver functionality
     while(1){
-        printf("Press 0 for exit\n");
-        printf("Press 1 for clean code without comments\n");
-        printf("Press 2 to get all the tokens of the source code from the lexer\n");
-        printf("Press 3 to parse the source code\n");
-        printf("Press 4 to get the total time taken for parsing\n");
+        printInterface();
+
         int choice = 0;
         scanf("%d",&choice);
-        if(choice == 0) break;
+
+        // case-1 : 0 for exit
+        if( choice == 0) 
+            break;
+        
+        // case-2 : 1 for removing tokens
         else if(choice == 1){
-            FILE *fptr1 = fopen("t1.txt","r");
+            FILE *fptr1 = fopen(sourcefile, "r");
             FILE *fptr2 = fopen("t1-clean.txt","w+");
-            removeComments(fptr1,fptr2);
+            
+            removeComments(fptr1,fptr2); 
+            
             fclose(fptr1);
             fclose(fptr2);
         }
+
+        // case-3 : 2 for tokenizing source code & printing to terminal
         else if(choice ==2){
-            printTokenInFile(sourcefile);
+            FILE *fptr1 = fopen(sourcefile, "r"); 
+
+            printTokenInFile(fptr1); 
+
+            fclose(fptr1);
         }
+
+        // case-4 :  3 for parsing the input source code
         else if(choice ==3){
             // storing the grammar of the langugae into the grammar data structure
             grammar = generateGrammarFromFile("Complete Grammar.txt");
 
             // calculating first and follow sets and storing them in firstAndFollowSets data strcture
             firstAndFollowSets = computeFirstAndFollowSets(grammar);
+            
+            // creating the parse table
             ParseTable table;
             table = createParseTable(firstAndFollowSets, table, grammar);
             
+            // parsing the input source code
             ParseTreeRoot *tree = parseInputSourceCode(sourcefile, table, grammar, firstAndFollowSets);
+
+            // printing the parsetree to outfile.txt
+            if (tree != NULL)
+                printParseTree(tree, "outfile.txt");
             
-            printf("working");
-            printParseTree(tree, "outfile.txt");
         }
+
+        // case-5 : 4 for computing time taken for parsing
         else if(choice == 4){
             clock_t start_time, end_time;
             double total_CPU_time, total_CPU_time_in_seconds;
+            
             start_time = clock();
-
 
             grammar = generateGrammarFromFile("Complete Grammar.txt");
             firstAndFollowSets = computeFirstAndFollowSets(grammar);
+            
             ParseTable table;
             table = createParseTable(firstAndFollowSets, table, grammar);
+            
             ParseTreeRoot* tree = parseInputSourceCode(sourcefile, table, grammar, firstAndFollowSets);
 
             end_time = clock();
             total_CPU_time = (double) (end_time - start_time);
             total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
+
             printf("\nTotal CPU Time = %.2f clocks \nTotal CPU Time(in secs) = %.3f seconds \n \n", total_CPU_time, total_CPU_time_in_seconds);
         }
     }
+
     return 0;
 }
