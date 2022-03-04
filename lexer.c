@@ -164,34 +164,39 @@ void initialize_Symbol_Table() {
 };
 
 //Function to add entry into the symbol table+
-TokenInfo *insertEntry(Symbol_Table_Record **Symbol_Table, char *lexeme, int linenum, Value *value, int tokenId) {
-    
+TokenInfo *insertEntry(Symbol_Table_Record **Symbol_Table, char *lexeme, int linenum, char *value, int tokenId)
+{
+
     int hash_key = hash_function(lexeme);
     Symbol_Table_Record *lookup_result = lookup(Symbol_Table, lexeme);
-    
-    if (lookup_result != NULL) {
-        lookup_result -> tk_info -> linenum = linenum;
-        return lookup_result -> tk_info;
+
+    if (lookup_result != NULL)
+    {
+        lookup_result->tk_info->linenum = linenum;
+        return lookup_result->tk_info;
     }
 
     TokenInfo *tk_info = (TokenInfo *)malloc(sizeof(TokenInfo));
     tk_info = createToken(lexeme, linenum, value, tokenId, false);
 
-    if (Symbol_Table[hash_key] == NULL) {
+    if (Symbol_Table[hash_key] == NULL)
+    {
         Symbol_Table[hash_key] = (Symbol_Table_Record *)malloc(sizeof(Symbol_Table_Record));
-        Symbol_Table[hash_key] -> tk_info = tk_info;
-        Symbol_Table[hash_key] -> nextRecord = NULL;
+        Symbol_Table[hash_key]->tk_info = tk_info;
+        Symbol_Table[hash_key]->nextRecord = NULL;
     }
-    else {
+    else
+    {
         Symbol_Table_Record *newentry = (Symbol_Table_Record *)malloc(sizeof(Symbol_Table_Record));
         Symbol_Table_Record *temp = Symbol_Table[hash_key];
-        newentry -> tk_info = tk_info;
-        newentry -> nextRecord = temp;
+        newentry->tk_info = tk_info;
+        newentry->nextRecord = temp;
         Symbol_Table[hash_key] = newentry;
     }
 
     return tk_info;
 };
+
 
 // Function to lookup a lexeme in the symbol table;
 Symbol_Table_Record *lookup(Symbol_Table_Record **Symbol_Table, char *lexeme) {
@@ -208,17 +213,32 @@ Symbol_Table_Record *lookup(Symbol_Table_Record **Symbol_Table, char *lexeme) {
     return NULL;
 };
 
-// Function create a new Token 
-TokenInfo *createToken(char *lexeme, int linenum, Value *val, int tokenId, bool isError) {
+Value *createNewValue(char *val, int tokenId)
+{
+    Value *value = (Value *)malloc(sizeof(Value));
+    if (tokenId == 4)
+    {
+        value->i = atoi(val);
+    }
+    else if (tokenId == 5)
+    {
+        value->f = atof(val);
+    }
+    return value;
+};
+
+// Function create a new Token
+TokenInfo *createToken(char *lexeme, int linenum, char *val, int tokenId, bool isError)
+{
     TokenInfo *newtoken = (TokenInfo *)malloc(sizeof(TokenInfo));
-    
-    newtoken -> lexeme = (char *)malloc(40 * sizeof(char)); // lexme size is limited here.
-    newtoken -> tokenId = tokenId;
-    newtoken -> lexeme = lexeme;
-    newtoken -> linenum = linenum;
-    newtoken -> value = val;
-    newtoken -> isError = isError;
-    
+
+    newtoken->lexeme = (char *)malloc(40 * sizeof(char)); // lexme size is limited here.
+    newtoken->tokenId = tokenId;
+    newtoken->lexeme = lexeme;
+    newtoken->linenum = linenum;
+    newtoken->value = val != NULL ? createNewValue(val, tokenId) : NULL;
+    newtoken->isError = isError;
+
     return newtoken;
 };
 
@@ -1081,11 +1101,11 @@ TokenInfo *getNextToken(FILE *fp) {
             if (*ptr2 == '\n')
             {
                 linenum--;
-                tk_info = insertEntry(Symbol_Table, lexeme, linenum, NULL, 5);
+                tk_info = insertEntry(Symbol_Table, lexeme, linenum, lexeme, 5);
             }
             else
             {
-                tk_info = insertEntry(Symbol_Table, lexeme, linenum, NULL, 5);
+                tk_info = insertEntry(Symbol_Table, lexeme, linenum, lexeme, 5);
             }
             dfa_state = 1;
             return tk_info;
@@ -1152,11 +1172,11 @@ TokenInfo *getNextToken(FILE *fp) {
             if (*ptr2 == '\n')
             {
                 linenum--;
-                tk_info = insertEntry(Symbol_Table, lexeme, linenum, NULL, 4);
+                tk_info = insertEntry(Symbol_Table, lexeme, linenum, lexeme, 4);
             }
             else
             {
-                tk_info = insertEntry(Symbol_Table, lexeme, linenum, NULL, 4);
+                tk_info = insertEntry(Symbol_Table, lexeme, linenum, lexeme, 4);
             }
             dfa_state = 1;
             return tk_info;

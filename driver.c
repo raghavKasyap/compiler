@@ -47,6 +47,7 @@ int main() {
             
             ParseTreeRoot *tree = parseInputSourceCode(sourcefile, table, grammar, firstAndFollowSets);
             
+            printf("working");
             printParseTree(tree, "outfile.txt");
         }
         else if(choice == 4){
