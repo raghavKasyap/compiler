@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
@@ -1213,6 +1212,27 @@ TokenInfo *getNextToken(FILE *fp) {
             tk_info = createToken(lexeme, linenum, NULL, -1, true);
             return tk_info;
         }
+        }
+    }
+}
+
+void removeComments(FILE *fptr1, FILE *fptr2) {
+    while (!feof(fptr1)) {
+        char c = fgetc(fptr1);
+        if (c == '%')
+        {
+            while (c != '\n')
+            {
+                c = fgetc(fptr1);
+            }
+        }
+        else {
+            if (c == '^') {
+                printf("\n \n");
+                return;
+            }
+            fprintf(fptr2, "%c", c);
+            printf("%c", c);
         }
     }
 }

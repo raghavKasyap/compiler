@@ -1,0 +1,674 @@
+_unionfunction 1 TK_FUNID function yes 
+input 1 TK_INPUT input_par yes 
+parameter 1 TK_PARAMETER input_par yes 
+list 1 TK_LIST input_par yes 
+[ 1 TK_SQL input_par yes 
+---- parameter_list no dataType 
+record 1 TK_RECORD constructiveDatatype yes 
+---- dataType no constructiveDatatype 
+#two 1 TK_RUID constructiveDatatype yes 
+d5cc34 1 TK_ID parameter_list yes 
+---- input_par no parameter_list 
+, 1 TK_COMMA remaining_list yes 
+---- parameter_list no remaining_list 
+---- parameter_list no dataType 
+---- dataType no constructiveDatatype 
+#point 1 TK_RUID constructiveDatatype yes 
+b5c6 1 TK_ID parameter_list yes 
+---- remaining_list no parameter_list 
+---- parameter_list no remaining_list 
+EPS -1 EPS remaining_list yes 
+---- -1 (null) 0.000000 no no 
+] 1 TK_SQR input_par yes 
+output 2 TK_OUTPUT output_par yes 
+parameter 2 TK_PARAMETER output_par yes 
+list 2 TK_LIST output_par yes 
+[ 2 TK_SQL output_par yes 
+---- parameter_list no dataType 
+---- dataType no primitiveDatatype 
+real 2 TK_REAL primitiveDatatype yes 
+d3 2 TK_ID parameter_list yes 
+---- output_par no parameter_list 
+---- parameter_list no remaining_list 
+EPS -1 EPS remaining_list yes 
+---- function no output_par 
+] 2 TK_SQR output_par yes 
+; 2 TK_SEM function yes 
+---- typeDefinitions no actualOrRedefined 
+record 4 TK_RECORD typeDefinition yes 
+#two 4 TK_RUID typeDefinition yes 
+type 5 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+#point 5 TK_RUID fieldType yes 
+: 5 TK_COLON fieldDefinition yes 
+beginpoint 5 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 5 TK_SEM fieldDefinition yes 
+type 6 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+#point 6 TK_RUID fieldType yes 
+: 6 TK_COLON fieldDefinition yes 
+endpoint 6 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 6 TK_SEM fieldDefinition yes 
+---- typeDefinition no fieldDefinitions 
+---- fieldDefinitions no moreFields 
+EPS -1 EPS moreFields yes 
+---- actualOrRedefined no typeDefinition 
+endrecord 7 TK_ENDRECORD typeDefinition yes 
+---- stmts no typeDefinitions 
+---- typeDefinitions no typeDefinitions 
+EPS -1 EPS typeDefinitions yes 
+type 9 TK_TYPE declaration yes 
+---- declaration no dataType 
+record 9 TK_RECORD constructiveDatatype yes 
+---- dataType no constructiveDatatype 
+#one 9 TK_RUID constructiveDatatype yes 
+: 9 TK_COLON declaration yes 
+b3 9 TK_ID declaration yes 
+---- declaration no global_or_not 
+EPS -1 EPS global_or_not yes 
+---- declarations no declaration 
+; 9 TK_SEM declaration yes 
+---- stmts no declarations 
+type 10 TK_TYPE declaration yes 
+---- declaration no dataType 
+record 10 TK_RECORD constructiveDatatype yes 
+---- dataType no constructiveDatatype 
+#two 10 TK_RUID constructiveDatatype yes 
+: 10 TK_COLON declaration yes 
+b5b567 10 TK_ID declaration yes 
+---- declaration no global_or_not 
+EPS -1 EPS global_or_not yes 
+---- declarations no declaration 
+; 10 TK_SEM declaration yes 
+---- declarations no declarations 
+type 11 TK_TYPE declaration yes 
+---- declaration no dataType 
+---- dataType no constructiveDatatype 
+#point 11 TK_RUID constructiveDatatype yes 
+: 11 TK_COLON declaration yes 
+d5 11 TK_ID declaration yes 
+---- declaration no global_or_not 
+EPS -1 EPS global_or_not yes 
+---- declarations no declaration 
+; 11 TK_SEM declaration yes 
+---- declarations no declarations 
+---- declarations no declarations 
+EPS -1 EPS declarations yes 
+---- otherStmts no stmt 
+b5b567 12 TK_ID singleOrRecId yes 
+---- assignmentStmt no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+<--- 12 TK_ASSIGNOP assignmentStmt yes 
+---- term no factor 
+---- factor no var 
+c6 12 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- arithmeticExpression no term 
+---- termPrime no highPrecedenceOperators 
+* 12 TK_MUL highPrecedenceOperators yes 
+---- termPrime no factor 
+---- factor no var 
+2 12 TK_NUM -1 var yes 
+---- term no termPrime 
+---- termPrime no termPrime 
+EPS -1 EPS termPrime yes 
+---- assignmentStmt no arithmeticExpression 
+---- arithmeticExpression no expPrime 
+EPS -1 EPS expPrime yes 
+---- stmt no assignmentStmt 
+; 12 TK_SEM assignmentStmt yes 
+---- stmts no otherStmts 
+---- otherStmts no stmt 
+b3 13 TK_ID singleOrRecId yes 
+---- assignmentStmt no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+<--- 13 TK_ASSIGNOP assignmentStmt yes 
+---- term no factor 
+---- factor no var 
+c6 13 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- arithmeticExpression no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- assignmentStmt no arithmeticExpression 
+---- expPrime no lowPrecedenceOperators 
+- 13 TK_MINUS lowPrecedenceOperators yes 
+---- term no factor 
+---- factor no var 
+c3 13 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- expPrime no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- arithmeticExpression no expPrime 
+---- expPrime no expPrime 
+EPS -1 EPS expPrime yes 
+---- stmt no assignmentStmt 
+; 13 TK_SEM assignmentStmt yes 
+---- otherStmts no otherStmts 
+---- otherStmts no stmt 
+while 14 TK_WHILE iterativeStmt yes 
+( 14 TK_OP iterativeStmt yes 
+---- booleanExpression no var 
+b5b567 14 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- booleanExpression no relationalOp 
+<= 14 TK_LE relationalOp yes 
+---- iterativeStmt no booleanExpression 
+---- booleanExpression no var 
+d5cc34 14 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+) 14 TK_CL iterativeStmt yes 
+---- iterativeStmt no stmt 
+read 15 TK_READ ioStmt yes 
+( 15 TK_OP ioStmt yes 
+---- ioStmt no var 
+c3bd 15 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+) 15 TK_CL ioStmt yes 
+---- stmt no ioStmt 
+; 15 TK_SEM ioStmt yes 
+---- otherStmts no stmt 
+d3 16 TK_ID singleOrRecId yes 
+---- assignmentStmt no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+<--- 16 TK_ASSIGNOP assignmentStmt yes 
+---- term no factor 
+---- factor no var 
+d3 16 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- arithmeticExpression no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- assignmentStmt no arithmeticExpression 
+---- expPrime no lowPrecedenceOperators 
++ 16 TK_PLUS lowPrecedenceOperators yes 
+---- term no factor 
+---- factor no var 
+c3bd 16 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- expPrime no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- arithmeticExpression no expPrime 
+---- expPrime no expPrime 
+EPS -1 EPS expPrime yes 
+---- stmt no assignmentStmt 
+; 16 TK_SEM assignmentStmt yes 
+---- iterativeStmt no otherStmts 
+---- otherStmts no stmt 
+b5b567 17 TK_ID singleOrRecId yes 
+---- assignmentStmt no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+<--- 17 TK_ASSIGNOP assignmentStmt yes 
+---- term no factor 
+---- factor no var 
+b5b567 17 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- arithmeticExpression no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- assignmentStmt no arithmeticExpression 
+---- expPrime no lowPrecedenceOperators 
++ 17 TK_PLUS lowPrecedenceOperators yes 
+---- term no factor 
+---- factor no var 
+1 17 TK_NUM -1 var yes 
+---- expPrime no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- arithmeticExpression no expPrime 
+---- expPrime no expPrime 
+EPS -1 EPS expPrime yes 
+---- stmt no assignmentStmt 
+; 17 TK_SEM assignmentStmt yes 
+---- otherStmts no otherStmts 
+---- otherStmts no otherStmts 
+EPS -1 EPS otherStmts yes 
+---- stmt no iterativeStmt 
+endwhile 18 TK_ENDWHILE iterativeStmt yes 
+---- otherStmts no otherStmts 
+---- otherStmts no otherStmts 
+EPS -1 EPS otherStmts yes 
+---- function no stmts 
+return 19 TK_RETURN returnStmt yes 
+[ 19 TK_SQL optionalReturn yes 
+d3 19 TK_ID idList yes 
+---- optionalReturn no idList 
+---- idList no more_ids 
+EPS -1 EPS more_ids yes 
+---- returnStmt no optionalReturn 
+] 19 TK_SQR optionalReturn yes 
+---- stmts no returnStmt 
+; 19 TK_SEM returnStmt yes 
+---- -1 (null) -1 otherFunctions no 
+end 20 TK_END function yes 
+---- program no otherFunctions 
+---- otherFunctions no otherFunctions 
+EPS -1 EPS otherFunctions yes 
+---- (null) no program 
+_main 25 TK_MAIN mainFunction yes 
+---- typeDefinitions no actualOrRedefined 
+record 26 TK_RECORD typeDefinition yes 
+#one 26 TK_RUID typeDefinition yes 
+type 27 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+---- fieldType no primitiveDatatype 
+real 27 TK_REAL primitiveDatatype yes 
+: 27 TK_COLON fieldDefinition yes 
+x 27 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 27 TK_SEM fieldDefinition yes 
+type 28 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+---- fieldType no primitiveDatatype 
+real 28 TK_REAL primitiveDatatype yes 
+: 28 TK_COLON fieldDefinition yes 
+y 28 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 28 TK_SEM fieldDefinition yes 
+---- typeDefinition no fieldDefinitions 
+---- fieldDefinitions no moreFields 
+EPS -1 EPS moreFields yes 
+---- actualOrRedefined no typeDefinition 
+endrecord 29 TK_ENDRECORD typeDefinition yes 
+---- stmts no typeDefinitions 
+---- typeDefinitions no actualOrRedefined 
+definetype 30 TK_DEFINETYPE definetypestmt yes 
+---- definetypestmt no a 
+record 30 TK_RECORD a yes 
+#one 30 TK_RUID definetypestmt yes 
+as 30 TK_AS definetypestmt yes 
+---- actualOrRedefined no definetypestmt 
+#point 30 TK_RUID definetypestmt yes 
+---- typeDefinitions no typeDefinitions 
+---- typeDefinitions no actualOrRedefined 
+definetype 31 TK_DEFINETYPE definetypestmt yes 
+---- definetypestmt no a 
+record 31 TK_RECORD a yes 
+#two 31 TK_RUID definetypestmt yes 
+as 31 TK_AS definetypestmt yes 
+---- actualOrRedefined no definetypestmt 
+#line 31 TK_RUID definetypestmt yes 
+---- typeDefinitions no typeDefinitions 
+---- typeDefinitions no actualOrRedefined 
+union 32 TK_UNION typeDefinition yes 
+#four 32 TK_RUID typeDefinition yes 
+type 33 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+#line 33 TK_RUID fieldType yes 
+: 33 TK_COLON fieldDefinition yes 
+ln 33 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 33 TK_SEM fieldDefinition yes 
+type 34 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+#point 34 TK_RUID fieldType yes 
+: 34 TK_COLON fieldDefinition yes 
+pt 34 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 34 TK_SEM fieldDefinition yes 
+---- typeDefinition no fieldDefinitions 
+type 35 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+#traingle 35 TK_RUID fieldType yes 
+: 35 TK_COLON fieldDefinition yes 
+tr 35 TK_FIELDID fieldDefinition yes 
+---- moreFields no fieldDefinition 
+; 35 TK_SEM fieldDefinition yes 
+---- fieldDefinitions no moreFields 
+---- moreFields no moreFields 
+EPS -1 EPS moreFields yes 
+---- actualOrRedefined no typeDefinition 
+endunion 36 TK_ENDUNION typeDefinition yes 
+---- typeDefinitions no typeDefinitions 
+---- typeDefinitions no actualOrRedefined 
+definetype 38 TK_DEFINETYPE definetypestmt yes 
+---- definetypestmt no a 
+record 38 TK_RECORD a yes 
+#three 38 TK_RUID definetypestmt yes 
+as 38 TK_AS definetypestmt yes 
+---- actualOrRedefined no definetypestmt 
+#triangle 38 TK_RUID definetypestmt yes 
+---- typeDefinitions no typeDefinitions 
+---- typeDefinitions no actualOrRedefined 
+record 39 TK_RECORD typeDefinition yes 
+#three 39 TK_RUID typeDefinition yes 
+type 40 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+#line 40 TK_RUID fieldType yes 
+: 40 TK_COLON fieldDefinition yes 
+base 40 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 40 TK_SEM fieldDefinition yes 
+type 41 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+#line 41 TK_RUID fieldType yes 
+: 41 TK_COLON fieldDefinition yes 
+height 41 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 41 TK_SEM fieldDefinition yes 
+---- typeDefinition no fieldDefinitions 
+---- fieldDefinitions no moreFields 
+EPS -1 EPS moreFields yes 
+---- actualOrRedefined no typeDefinition 
+endrecord 42 TK_ENDRECORD typeDefinition yes 
+---- typeDefinitions no typeDefinitions 
+---- typeDefinitions no actualOrRedefined 
+definetype 44 TK_DEFINETYPE definetypestmt yes 
+---- definetypestmt no a 
+union 44 TK_UNION a yes 
+#four 44 TK_RUID definetypestmt yes 
+as 44 TK_AS definetypestmt yes 
+---- actualOrRedefined no definetypestmt 
+#shape 44 TK_RUID definetypestmt yes 
+---- typeDefinitions no typeDefinitions 
+---- typeDefinitions no actualOrRedefined 
+record 45 TK_RECORD typeDefinition yes 
+#variantrecord 45 TK_RUID typeDefinition yes 
+type 46 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+---- fieldType no primitiveDatatype 
+int 46 TK_INT primitiveDatatype yes 
+: 46 TK_COLON fieldDefinition yes 
+tag 46 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 46 TK_SEM fieldDefinition yes 
+type 47 TK_TYPE fieldDefinition yes 
+---- fieldDefinition no fieldType 
+#shape 47 TK_RUID fieldType yes 
+: 47 TK_COLON fieldDefinition yes 
+s 47 TK_FIELDID fieldDefinition yes 
+---- fieldDefinitions no fieldDefinition 
+; 47 TK_SEM fieldDefinition yes 
+---- typeDefinition no fieldDefinitions 
+---- fieldDefinitions no moreFields 
+EPS -1 EPS moreFields yes 
+---- actualOrRedefined no typeDefinition 
+endrecord 48 TK_ENDRECORD typeDefinition yes 
+---- typeDefinitions no typeDefinitions 
+---- typeDefinitions no typeDefinitions 
+EPS -1 EPS typeDefinitions yes 
+type 50 TK_TYPE declaration yes 
+---- declaration no dataType 
+record 50 TK_RECORD constructiveDatatype yes 
+---- dataType no constructiveDatatype 
+#variantrecord 50 TK_RUID constructiveDatatype yes 
+: 50 TK_COLON declaration yes 
+d4 50 TK_ID declaration yes 
+---- declaration no global_or_not 
+EPS -1 EPS global_or_not yes 
+---- declarations no declaration 
+; 50 TK_SEM declaration yes 
+---- stmts no declarations 
+type 51 TK_TYPE declaration yes 
+---- declaration no dataType 
+---- dataType no primitiveDatatype 
+int 51 TK_INT primitiveDatatype yes 
+: 51 TK_COLON declaration yes 
+b5 51 TK_ID declaration yes 
+---- declaration no global_or_not 
+EPS -1 EPS global_or_not yes 
+---- declarations no declaration 
+; 51 TK_SEM declaration yes 
+---- declarations no declarations 
+type 52 TK_TYPE declaration yes 
+---- declaration no dataType 
+---- dataType no primitiveDatatype 
+int 52 TK_INT primitiveDatatype yes 
+: 52 TK_COLON declaration yes 
+d5cb34567 52 TK_ID declaration yes 
+---- declaration no global_or_not 
+EPS -1 EPS global_or_not yes 
+---- declarations no declaration 
+; 52 TK_SEM declaration yes 
+---- declarations no declarations 
+type 53 TK_TYPE declaration yes 
+---- declaration no dataType 
+record 53 TK_RECORD constructiveDatatype yes 
+---- dataType no constructiveDatatype 
+#variantrecord 53 TK_RUID constructiveDatatype yes 
+: 53 TK_COLON declaration yes 
+b5c6 53 TK_ID declaration yes 
+---- declaration no global_or_not 
+EPS -1 EPS global_or_not yes 
+---- declarations no declaration 
+; 53 TK_SEM declaration yes 
+---- declarations no declarations 
+---- declarations no declarations 
+EPS -1 EPS declarations yes 
+---- otherStmts no stmt 
+b5c6 54 TK_ID singleOrRecId yes 
+---- assignmentStmt no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+<--- 54 TK_ASSIGNOP assignmentStmt yes 
+---- term no factor 
+---- factor no var 
+b5c6 54 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+. 54 TK_DOT oneExpansion yes 
+---- constructedVariable no oneExpansion 
+tag 54 TK_FIELDID oneExpansion yes 
+---- singleOrRecId no constructedVariable 
+---- constructedVariable no moreExpansions 
+EPS -1 EPS moreExpansions yes 
+---- arithmeticExpression no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- assignmentStmt no arithmeticExpression 
+---- expPrime no lowPrecedenceOperators 
++ 54 TK_PLUS lowPrecedenceOperators yes 
+---- term no factor 
+---- factor no var 
+d4 54 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+. 54 TK_DOT oneExpansion yes 
+---- constructedVariable no oneExpansion 
+s 54 TK_FIELDID oneExpansion yes 
+---- singleOrRecId no constructedVariable 
+. 54 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+ln 54 TK_FIELDID oneExpansion yes 
+---- constructedVariable no moreExpansions 
+. 54 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+beginpoint 54 TK_FIELDID oneExpansion yes 
+---- moreExpansions no moreExpansions 
+. 54 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+x 54 TK_FIELDID oneExpansion yes 
+---- moreExpansions no moreExpansions 
+---- moreExpansions no moreExpansions 
+EPS -1 EPS moreExpansions yes 
+---- expPrime no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- arithmeticExpression no expPrime 
+---- expPrime no lowPrecedenceOperators 
+- 54 TK_MINUS lowPrecedenceOperators yes 
+---- term no factor 
+---- factor no var 
+b5c6 54 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+. 54 TK_DOT oneExpansion yes 
+---- constructedVariable no oneExpansion 
+s 54 TK_FIELDID oneExpansion yes 
+---- singleOrRecId no constructedVariable 
+. 54 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+tr 54 TK_FIELDID oneExpansion yes 
+---- constructedVariable no moreExpansions 
+. 54 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+base 54 TK_FIELDID oneExpansion yes 
+---- moreExpansions no moreExpansions 
+. 54 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+beginpoint 54 TK_FIELDID oneExpansion yes 
+---- moreExpansions no moreExpansions 
+. 54 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+y 54 TK_FIELDID oneExpansion yes 
+---- moreExpansions no moreExpansions 
+---- moreExpansions no moreExpansions 
+EPS -1 EPS moreExpansions yes 
+---- expPrime no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- expPrime no expPrime 
+---- expPrime no expPrime 
+EPS -1 EPS expPrime yes 
+---- stmt no assignmentStmt 
+; 54 TK_SEM assignmentStmt yes 
+---- stmts no otherStmts 
+---- otherStmts no stmt 
+b5 55 TK_ID singleOrRecId yes 
+---- assignmentStmt no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+<--- 55 TK_ASSIGNOP assignmentStmt yes 
+---- term no factor 
+---- factor no var 
+b5 55 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- arithmeticExpression no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- assignmentStmt no arithmeticExpression 
+---- expPrime no lowPrecedenceOperators 
++ 55 TK_PLUS lowPrecedenceOperators yes 
+---- term no factor 
+---- factor no var 
+1 55 TK_NUM -1 var yes 
+---- expPrime no term 
+---- term no termPrime 
+EPS -1 EPS termPrime yes 
+---- arithmeticExpression no expPrime 
+---- expPrime no expPrime 
+EPS -1 EPS expPrime yes 
+---- stmt no assignmentStmt 
+; 55 TK_SEM assignmentStmt yes 
+---- otherStmts no otherStmts 
+---- otherStmts no stmt 
+d4 56 TK_ID singleOrRecId yes 
+---- assignmentStmt no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+<--- 56 TK_ASSIGNOP assignmentStmt yes 
+---- term no factor 
+---- factor no var 
+b5c6 56 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- arithmeticExpression no term 
+---- termPrime no highPrecedenceOperators 
+/ 56 TK_DIV highPrecedenceOperators yes 
+---- termPrime no factor 
+---- factor no var 
+d5cb34567 56 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+---- term no termPrime 
+---- termPrime no termPrime 
+EPS -1 EPS termPrime yes 
+---- assignmentStmt no arithmeticExpression 
+---- arithmeticExpression no expPrime 
+EPS -1 EPS expPrime yes 
+---- stmt no assignmentStmt 
+; 56 TK_SEM assignmentStmt yes 
+---- otherStmts no otherStmts 
+---- otherStmts no stmt 
+write 57 TK_WRITE ioStmt yes 
+( 57 TK_OP ioStmt yes 
+---- ioStmt no var 
+d4 57 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+---- singleOrRecId no constructedVariable 
+EPS -1 EPS constructedVariable yes 
+) 57 TK_CL ioStmt yes 
+---- stmt no ioStmt 
+; 57 TK_SEM ioStmt yes 
+---- otherStmts no otherStmts 
+---- otherStmts no stmt 
+write 58 TK_WRITE ioStmt yes 
+( 58 TK_OP ioStmt yes 
+---- ioStmt no var 
+d4 58 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+. 58 TK_DOT oneExpansion yes 
+---- constructedVariable no oneExpansion 
+s 58 TK_FIELDID oneExpansion yes 
+---- singleOrRecId no constructedVariable 
+. 58 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+ln 58 TK_FIELDID oneExpansion yes 
+---- constructedVariable no moreExpansions 
+. 58 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+beginpoint 58 TK_FIELDID oneExpansion yes 
+---- moreExpansions no moreExpansions 
+. 58 TK_DOT oneExpansion yes 
+---- moreExpansions no oneExpansion 
+x 58 TK_FIELDID oneExpansion yes 
+---- moreExpansions no moreExpansions 
+---- moreExpansions no moreExpansions 
+EPS -1 EPS moreExpansions yes 
+) 58 TK_CL ioStmt yes 
+---- stmt no ioStmt 
+; 58 TK_SEM ioStmt yes 
+---- otherStmts no otherStmts 
+---- otherStmts no stmt 
+write 59 TK_WRITE ioStmt yes 
+( 59 TK_OP ioStmt yes 
+---- ioStmt no var 
+b5c6 59 TK_ID singleOrRecId yes 
+---- var no singleOrRecId 
+. 59 TK_DOT oneExpansion yes 
+---- constructedVariable no oneExpansion 
+tag 59 TK_FIELDID oneExpansion yes 
+---- singleOrRecId no constructedVariable 
+---- constructedVariable no moreExpansions 
+EPS -1 EPS moreExpansions yes 
+) 59 TK_CL ioStmt yes 
+---- stmt no ioStmt 
+; 59 TK_SEM ioStmt yes 
+---- otherStmts no otherStmts 
+---- otherStmts no otherStmts 
+EPS -1 EPS otherStmts yes 
+---- mainFunction no stmts 
+return 60 TK_RETURN returnStmt yes 
+---- returnStmt no optionalReturn 
+EPS -1 EPS optionalReturn yes 
+---- stmts no returnStmt 
+; 60 TK_SEM returnStmt yes 
+---- program no mainFunction 
+end 61 TK_END mainFunction yes 

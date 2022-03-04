@@ -4,3 +4,5 @@ a.exe
 /parser.o
 /runCode.exe
 /t1.txt
+/driver.o
+t1-clean.txt

@@ -6,31 +6,17 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
-#include "parser.c"
-#include "lexer.c"
-int main(){
-    Grammar* grammar;
-    FirstAndFollow* firstAndFollowSets;
-    appendlastchar();
-    initialize_Symbol_Table();
-    FILE *fptr = fopen("t1.txt","r");
-    fclose(fptr);
-    return 0;
-}
-int main() {
-    
-    
-    // storing the grammar of the langugae into the grammar data structure
-    
-    // calculating first and follow sets and storing them in firstAndFollowSets data strcture
-   
-    printAllSets(firstAndFollowSets);
+#include <time.h>
+#include "lexer.h"
+#include "parser.h"
 
-}
-int main(){
+
+int main() {
     char* sourcefile = "t1.txt";
     appendlastchar(sourcefile);
     initialize_Symbol_Table();
+    Grammar* grammar;
+    FirstAndFollow* firstAndFollowSets;
     while(1){
         printf("Press 0 for exit\n");
         printf("Press 1 for clean code without comments\n");
@@ -48,25 +34,39 @@ int main(){
             fclose(fptr2);
         }
         else if(choice ==2){
-            FILE *fptr3 = fopen("t1.txt","r");
-            while(1){
-                token_info* tk = getNextToken(fptr3);
-                printf("%d ",tk->linenum);
-                printf("%s ",tk->lexeme);
-                printf("%d ",TerminalIDs[(tk->token_id)]);
-                if(tk->lexeme == "EOF") break;
-            }
-            fclose(fptr3);
+            printTokenInFile(sourcefile);
         }
         else if(choice ==3){
-            Grammar* grammar;
-            FirstAndFollow* firstAndFollowSets;
+            // storing the grammar of the langugae into the grammar data structure
+            grammar = generateGrammarFromFile("Complete Grammar.txt");
+
+            // calculating first and follow sets and storing them in firstAndFollowSets data strcture
+            firstAndFollowSets = computeFirstAndFollowSets(grammar);
+            ParseTable table;
+            table = createParseTable(firstAndFollowSets, table, grammar);
+            
+            ParseTreeRoot *tree = parseInputSourceCode(sourcefile, table, grammar, firstAndFollowSets);
+            
+            printParseTree(tree, "outfile.txt");
+        }
+        else if(choice == 4){
+            clock_t start_time, end_time;
+            double total_CPU_time, total_CPU_time_in_seconds;
+            start_time = clock();
+
+
             grammar = generateGrammarFromFile("Complete Grammar.txt");
             firstAndFollowSets = computeFirstAndFollowSets(grammar);
             ParseTable table;
             table = createParseTable(firstAndFollowSets, table, grammar);
-            ParseTreeRoot* tree = parseInputSourceCode("outfile.txt", table, grammar, firstAndFollowSets);
-            printParseTree(tree, "outfile.txt");
+            ParseTreeRoot* tree = parseInputSourceCode(sourcefile, table, grammar, firstAndFollowSets);
+            printParseTree(tree,"outfile.txt");
+
+
+            end_time = clock();
+            total_CPU_time = (double) (end_time - start_time);
+            total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
+            printf("total_CPU_time = %f \n total_CPU_time_in_seconds = %f seconds",total_CPU_time,total_CPU_time_in_seconds);
         }
     }
     return 0;

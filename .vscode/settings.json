@@ -1,3 +1,9 @@
 {
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "lexer.h": "c",
+        "lexerdef.h": "c",
+        "parser.h": "c",
+        "parserdef.h": "c"
+    }
 }

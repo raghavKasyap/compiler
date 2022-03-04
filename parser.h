@@ -7,12 +7,15 @@
 #define ADDITIONAL_PRODUCTIONS_SIZE 3
 
 // helper functions for core functions
+Grammar * generateGrammarFromFile(char* fileName);
 bool* computeFirstSetNonTerminal(ProductionRules* currNonTerminal, Grammar* grammar, bool** firstSets, bool* isCalculated);
 bool *computeFollowSetNonTerminal(int currNtId, RHSNonTerminalAppearance **rhsNtAppearance, Grammar *grammar, bool **firstSets, bool **followSets, bool *isCalculated, bool* prevCalledNts);
+void printTokenInFile(char* sourceFile);
 
 // core functions of parser.c file
 FirstAndFollow *computeFirstAndFollowSets(Grammar *grammar);
 ParseTable createParseTable (FirstAndFollow* faft, ParseTable table, Grammar* grammar);
 ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* grammar,FirstAndFollow* firstAndFollowSets);
+void printParseTree(ParseTreeRoot *tree, char *outFile);
 
 #endif

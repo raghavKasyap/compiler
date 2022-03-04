@@ -5,10 +5,137 @@
 #include "parser.h"
 #include "lexer.h"
 
-char* helperPtr1 = NULL;
-char* helperPtr2 = NULL;
+const char *TerminalIDs[] = {
+    "TK_ASSIGNOP",
+    "TK_COMMENT",
+    "TK_FIELDID",
+    "TK_ID",
+    "TK_NUM",
+    "TK_RNUM",
+    "TK_FUNID",
+    "TK_RUID",
+    "TK_WITH",
+    "TK_PARAMETERS",
+    "TK_END",
+    "TK_WHILE",
+    "TK_UNION",
+    "TK_ENDUNION",
+    "TK_DEFINETYPE",
+    "TK_AS",
+    "TK_TYPE",
+    "TK_MAIN",
+    "TK_GLOBAL",
+    "TK_PARAMETER",
+    "TK_LIST",
+    "TK_SQL",
+    "TK_SQR",
+    "TK_INPUT",
+    "TK_OUTPUT",
+    "TK_INT",
+    "TK_REAL",
+    "TK_COMMA",
+    "TK_SEM",
+    "TK_COLON",
+    "TK_DOT",
+    "TK_ENDWHILE",
+    "TK_OP",
+    "TK_CL",
+    "TK_IF",
+    "TK_THEN",
+    "TK_ENDIF",
+    "TK_READ",
+    "TK_WRITE",
+    "TK_RETURN",
+    "TK_PLUS",
+    "TK_MINUS",
+    "TK_MUL",
+    "TK_DIV",
+    "TK_CALL",
+    "TK_RECORD",
+    "TK_ENDRECORD",
+    "TK_ELSE",
+    "TK_AND",
+    "TK_OR",
+    "TK_NOT",
+    "TK_LT",
+    "TK_LE",
+    "TK_EQ",
+    "TK_GT",
+    "TK_GE",
+    "TK_NE",
+    "DOLLAR",
+    "EPS"};
 
+const char *NonTerminalIDs[] = {
+    "program",
+    "otherFunctions",
+    "mainFunction",
+    "stmts",
+    "function",
+    "input_par",
+    "output_par",
+    "parameter_list",
+    "dataType",
+    "remaining_list",
+    "primitiveDatatype",
+    "constructiveDatatype",
+    "typeDefinitions",
+    "declarations",
+    "declaration",
+    "otherStmts",
+    "returnStmt",
+    "actualOrRedefined",
+    "typeDefinition",
+    "definetypestmt",
+    "fieldDefinitions",
+    "fieldDefinition",
+    "moreFields",
+    "fieldType",
+    "global_or_not",
+    "stmt",
+    "assignmentStmt",
+    "iterativeStmt",
+    "conditionalStmt",
+    "ioStmt",
+    "funCallStmt",
+    "singleOrRecId",
+    "arithmeticExpression",
+    "constructedVariable",
+    "oneExpansion",
+    "moreExpansions",
+    "outputParameters",
+    "inputParameters",
+    "idList",
+    "booleanExpression",
+    "elsecondition",
+    "var",
+    "term",
+    "expPrime",
+    "lowPrecedenceOperators",
+    "factor",
+    "termPrime",
+    "highPrecedenceOperators",
+    "logicalOp",
+    "relationalOp",
+    "optionalReturn",
+    "more_ids",
+    "a"
+};
 
+// print tokens in source code file
+void printTokenInFile(char* sourceFile) {
+    FILE *fptr3 = fopen(sourceFile, "r");
+    while (1)
+    {
+        TokenInfo *tk = getNextToken(fptr3);
+        printf("%d ", tk->linenum);
+        printf("%s ", tk->lexeme);
+        printf("%s \n", TerminalIDs[tk->tokenId]);
+        if (tk->tokenId == DOLLAR)
+            break;
+    }
+    fclose(fptr3);
+}
 
 // Function to fetch the Non-Terminal ID of non_terminal from NonTerminalIDs array
 int fetchNonTerminalId(char* non_terminal) {
@@ -89,8 +216,8 @@ Grammar * generateGrammarFromFile(char* fileName) {
         fgets(productionRule, 200, fptr);
         char * symbol = strtok(productionRule, " ");
         int nonTerminalId = fetchNonTerminalId(symbol);
-        printf("%d", nonTerminalId);
-        printf(" ");
+        // printf("%d", nonTerminalId);
+        // printf(" ");
         SymbolLinkedList *rightHandSide = (SymbolLinkedList *) malloc(sizeof(SymbolLinkedList));
         SymbolLinkedList *currHead = rightHandSide;
         int size = 0;
@@ -108,8 +235,8 @@ Grammar * generateGrammarFromFile(char* fileName) {
             nextSymbolInRule -> next = NULL;
             currHead -> next = nextSymbolInRule;
             currHead = currHead -> next;
-            printf("%d", newSymbol.symbolID);
-            printf(" ");
+            // printf("%d", newSymbol.symbolID);
+            // printf(" ");
         }
         
         // creating newRule;
@@ -118,7 +245,7 @@ Grammar * generateGrammarFromFile(char* fileName) {
         // Adding newRule to grammar
         addNewRuleToGrammar(grammar, nonTerminalId, newRule);
 
-        printf("\n");
+        // printf("\n");
     }
 
     fclose(fptr);
@@ -492,7 +619,7 @@ FirstAndFollow* computeFirstAndFollowSets(Grammar* grammar) {
     RHSNonTerminalAppearance** rhsNonTerminalAppearance = initialize_RHS_NT_Appearance();
     populateRHSAppearance(rhsNonTerminalAppearance, grammar);
     
-    printRHS(rhsNonTerminalAppearance);
+    // printRHS(rhsNonTerminalAppearance);
 
     for (int i = 0; i < NUM_NON_TERMINALS; i++) 
         isCalculated[i] = false;
@@ -695,7 +822,9 @@ ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* 
                 break;
             }
         }
-
+        else if (currToken -> tokenId == TK_COMMENT) {
+            currToken = getNextToken(fp);
+        }
         // case 2 - stack top is nonTerminal
         else if (top -> type) {
             // case 1 - match
@@ -804,12 +933,12 @@ void printTreeNode(ParseTreeNode* node, FILE* fptr) {
     bool isNum = node -> symbolId == NUM;
     int valueInt = 0;
     int valueFloat = 0;
-    if (isNum) valueInt =  node -> value -> i;
-    if (isRealNum) valueFloat = node -> value -> f;
+    if(isNum) valueInt = node->value == NULL ? -1 : node->value->i;
+    if (isRealNum) valueFloat = node->value == NULL ? -1 : node->value->f;
     char* tokenName = node -> type ? NULL : TerminalIDs[node -> symbolId];
     char* nodeSymbol = node -> type ? NonTerminalIDs[node -> symbolId] : NULL;
     char* parentName = NonTerminalIDs[node -> parentSymbolId];
-    char* isLeafNode = node -> type ? yes : no;
+    char* isLeafNode = !node -> type ? yes : no;
 
     // numbers
     if (isRealNum) {
@@ -858,18 +987,18 @@ void printParseTree(ParseTreeRoot* tree, char* outFile) {
     printInorderTraversalToFile(root, fptr);
 };
 
-int main() {
-    Grammar* grammar;
-    FirstAndFollow* firstAndFollowSets;
+// int main() {
+//     Grammar* grammar;
+//     FirstAndFollow* firstAndFollowSets;
     
-    // storing the grammar of the langugae into the grammar data structure
-    grammar = generateGrammarFromFile("Complete Grammar.txt");
+//     // storing the grammar of the langugae into the grammar data structure
+//     grammar = generateGrammarFromFile("Complete Grammar.txt");
 
-    // calculating first and follow sets and storing them in firstAndFollowSets data strcture
-    firstAndFollowSets = computeFirstAndFollowSets(grammar);
-    ParseTable table;
-    table = createParseTable(firstAndFollowSets, table, grammar);
-    printAllSets(firstAndFollowSets);
-    ParseTreeRoot* tree = parseInputSourceCode("t1.txt", table, grammar, firstAndFollowSets);
-    printParseTree(tree, "outfile.txt");
-}
+//     // calculating first and follow sets and storing them in firstAndFollowSets data strcture
+//     firstAndFollowSets = computeFirstAndFollowSets(grammar);
+//     ParseTable table;
+//     table = createParseTable(firstAndFollowSets, table, grammar);
+//     printAllSets(firstAndFollowSets);
+//     ParseTreeRoot* tree = parseInputSourceCode("t1.txt", table, grammar, firstAndFollowSets);
+//     printParseTree(tree, "outfile.txt");
+// }
