@@ -6,8 +6,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
-
-// Array of keywords for initializing symbol table
 const char *keywords[28] = {
     "with",
     "parameters",
@@ -36,8 +34,7 @@ const char *keywords[28] = {
     "call",
     "record",
     "endrecord",
-    "else"
-};
+    "else"};
 
 int keyword_ids[28] = {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 23, 24, 25, 26, 31, 34, 35, 36, 37, 38, 39, 44, 45, 46, 47};
 
@@ -53,20 +50,23 @@ char *ptr2 = NULL;
 Symbol_Table_Record **Symbol_Table;
 
 // this functions loads code into buffer
-int getStream(FILE *fp) {
+int getStream(FILE *fp)
+{
     if (inputexhausted)
         return -1;
 
     size_t noOfChars = fread(buff[buffload], sizeof(char), BLOCK_SIZE / sizeof(char), fp);
 
-    if (noOfChars == 0 || noOfChars < BLOCK_SIZE) {
+    if (noOfChars == 0 || noOfChars < BLOCK_SIZE)
+    {
         inputexhausted = 1;
     }
 
     buffload = 1 - buffload;
     buffcurr = 1 - buffcurr;
 
-    if (!(noOfChars + 1)) {
+    if (!(noOfChars + 1))
+    {
         printf("Error: Input Buffers failed to be loaded\n");
         return -1;
     }
@@ -75,46 +75,56 @@ int getStream(FILE *fp) {
 }
 
 // Fetch the current character pointed by ptr2
-char getnextchar(FILE *fp) {
+char getnextchar(FILE *fp)
+{
     char *lastchar;
     int out;
 
-    if (ptr1 == NULL && ptr2 == NULL) {
+    if (ptr1 == NULL && ptr2 == NULL)
+    {
         out = getStream(fp);
-        
-        if (out == -1) return EOF;
-        
+
+        if (out == -1)
+            return EOF;
+
         ptr1 = buff[buffcurr];
         ptr2 = buff[buffcurr];
         lastchar = ptr2;
-        
-        if (*lastchar == '\n') {
+
+        if (*lastchar == '\n')
+        {
             linenum++;
         }
 
         ptr2++;
         return *lastchar;
     }
-    else {
+    else
+    {
         lastchar = ptr2;
-        
-        if (ptr2 + 1 == buff[buffcurr] + BLOCK_SIZE) {
+
+        if (ptr2 + 1 == buff[buffcurr] + BLOCK_SIZE)
+        {
             out = getStream(fp);
-            
-            if (out + 1 == 0) {
+
+            if (out + 1 == 0)
+            {
                 return EOF;
             }
             ptr2 = buff[buffcurr];
         }
-        else if (*ptr2 == EOF) {
+        else if (*ptr2 == EOF)
+        {
             fileended = 1;
             return ' ';
         }
-        else {
+        else
+        {
             ptr2++;
         }
 
-        if (*lastchar == '\n') {
+        if (*lastchar == '\n')
+        {
             linenum++;
         }
 
@@ -123,33 +133,39 @@ char getnextchar(FILE *fp) {
 }
 
 // function that sets the pointer ptr1 to the start of new lexeme
-void read_new_token() {
+void read_new_token()
+{
     ptr1 = ptr2;
 };
 
-void retract() {
+void retract()
+{
     ptr2--;
-    
-    if (*ptr2 == '\n') linenum--;
-    
+
+    if (*ptr2 == '\n')
+        linenum--;
+
     ptr2--;
 };
 
 // hash function (SDBM) to hash lexemes
-int hash_function(char *string) {
+int hash_function(char *string)
+{
     int n = 100;
     unsigned long hash = 0;
     int c;
-    
-    while (c = *string++) {
+
+    while (c = *string++)
+    {
         hash = c + (hash << 6) + (hash << 16) - hash;
     }
-    
+
     return hash % n;
 };
 
 // Function to initialize Symbol Table with keywords
-void initialize_Symbol_Table() {
+void initialize_Symbol_Table()
+{
     int n = 100;
     Symbol_Table = (Symbol_Table_Record **)malloc(n * sizeof(Symbol_Table_Record *));
     for (int i = 0; i < n; i++)
@@ -163,7 +179,24 @@ void initialize_Symbol_Table() {
     return;
 };
 
-//Function to add entry into the symbol table+
+// Function to lookup a lexeme in the symbol table;
+Symbol_Table_Record *lookup(Symbol_Table_Record **Symbol_Table, char *lexeme)
+{
+    int hash_key = hash_function(lexeme);
+    Symbol_Table_Record *helper = Symbol_Table[hash_key];
+
+    while (helper)
+    {
+        if (strcmp(lexeme, helper->tk_info->lexeme) == 0)
+            return helper;
+
+        helper = helper->nextRecord;
+    }
+
+    return NULL;
+};
+
+// Function to add entry into the symbol table+
 TokenInfo *insertEntry(Symbol_Table_Record **Symbol_Table, char *lexeme, int linenum, char *value, int tokenId)
 {
 
@@ -197,32 +230,18 @@ TokenInfo *insertEntry(Symbol_Table_Record **Symbol_Table, char *lexeme, int lin
     return tk_info;
 };
 
-
-// Function to lookup a lexeme in the symbol table;
-Symbol_Table_Record *lookup(Symbol_Table_Record **Symbol_Table, char *lexeme) {
-    int hash_key = hash_function(lexeme);
-    Symbol_Table_Record *helper = Symbol_Table[hash_key];
-    
-    while (helper) {
-        if (strcmp(lexeme, helper->tk_info->lexeme) == 0)
-            return helper;
-        
-        helper = helper->nextRecord;
-    }
-
-    return NULL;
-};
-
 Value *createNewValue(char *val, int tokenId)
 {
     Value *value = (Value *)malloc(sizeof(Value));
     if (tokenId == 4)
     {
         value->i = atoi(val);
+        printf("value of number %d \n", value->i);
     }
     else if (tokenId == 5)
     {
         value->f = atof(val);
+        printf("value of real number %f \n", value->f);
     }
     return value;
 };
@@ -243,12 +262,14 @@ TokenInfo *createToken(char *lexeme, int linenum, char *val, int tokenId, bool i
 };
 
 // utility function to extract a substring between start and end pointers.
-char *getsubstring(char *start, char *end) {
+char *getsubstring(char *start, char *end)
+{
     int n = (end - start) / sizeof(char);
     char *s = (char *)malloc((n + 1) * sizeof(char));
     char *temp = start;
     int i = 0;
-    while (temp < end) {
+    while (temp < end)
+    {
         s[i] = *temp;
         ++temp;
         ++i;
@@ -259,21 +280,25 @@ char *getsubstring(char *start, char *end) {
     return s;
 }
 
-TokenInfo *getNextToken(FILE *fp) {
+TokenInfo *getNextToken(FILE *fp)
+{
     dfa_state = 1;
     char c;
 
     TokenInfo *tk_info = (TokenInfo *)malloc(sizeof(TokenInfo));
-    
-    while (1) {
+
+    while (1)
+    {
         c = getnextchar(fp);
         if (fileended)
             return createToken("DOLLAR", linenum, NULL, DOLLAR, false);
-        
-        switch (dfa_state) {
+
+        switch (dfa_state)
+        {
         // initial state
-        case 1: {
-            if (c == '&') 
+        case 1:
+        {
+            if (c == '&')
             {
                 dfa_state = 2;
             }
@@ -584,7 +609,7 @@ TokenInfo *getNextToken(FILE *fp) {
             }
             else
             {
-                dfa_state = 70;
+                dfa_state = 19;
             }
             break;
         }
@@ -923,13 +948,13 @@ TokenInfo *getNextToken(FILE *fp) {
         case 43:
         {
             retract();
-            
+
             char *lexeme = getsubstring(ptr1, ptr2);
-            
+
             if (*ptr2 == '\n')
             {
                 linenum--;
-                
+
                 tk_info = insertEntry(Symbol_Table, lexeme, linenum, NULL, 17);
             }
             else
@@ -937,7 +962,7 @@ TokenInfo *getNextToken(FILE *fp) {
                 tk_info = insertEntry(Symbol_Table, lexeme, linenum, NULL, 17);
             }
             dfa_state = 1;
-            
+
             return tk_info;
         }
         case 44:
@@ -1236,8 +1261,10 @@ TokenInfo *getNextToken(FILE *fp) {
     }
 }
 
-void removeComments(FILE *fptr1, FILE *fptr2) {
-    while (!feof(fptr1)) {
+void removeComments(FILE *fptr1, FILE *fptr2)
+{
+    while (!feof(fptr1))
+    {
         char c = fgetc(fptr1);
         if (c == '%')
         {
@@ -1246,8 +1273,10 @@ void removeComments(FILE *fptr1, FILE *fptr2) {
                 c = fgetc(fptr1);
             }
         }
-        else {
-            if (c == '^') {
+        else
+        {
+            if (c == '^')
+            {
                 printf("\n \n");
                 return;
             }
@@ -1258,12 +1287,12 @@ void removeComments(FILE *fptr1, FILE *fptr2) {
 }
 
 // appends an new character to the end of source code
-void appendlastchar(char* fileName) {
+void appendlastchar(char *fileName)
+{
     FILE *fptr1 = fopen(fileName, "a");
     fputs("^", fptr1);
     fclose(fptr1);
 }
-
 
 // int main() {
 //     appendlastchar("t1.txt");
