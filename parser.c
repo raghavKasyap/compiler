@@ -932,7 +932,7 @@ void printTreeNode(ParseTreeNode* node, FILE* fptr) {
     bool isRealNum = node -> symbolId == REALNUM;
     bool isNum = node -> symbolId == NUM;
     int valueInt = 0;
-    int valueFloat = 0;
+    float valueFloat = 0;
     if(isNum) valueInt = node->value == NULL ? -1 : node->value->i;
     if (isRealNum) valueFloat = node->value == NULL ? -1 : node->value->f;
     char* tokenName = node -> type ? NULL : TerminalIDs[node -> symbolId];
