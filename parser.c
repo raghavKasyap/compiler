@@ -132,8 +132,11 @@ void printTokenInFile(FILE* fptr1)
         printf("%d ", tk->linenum);
         printf("%s ", tk->lexeme);
         printf("%s \n", TerminalIDs[tk->tokenId]);
-        if (tk->tokenId == DOLLAR)
+        if (tk->tokenId == DOLLAR){
+            printf("\n**************\nTokenization has been successful\n\n**************\n");
             break;
+        }
+            
     }
     
 }
@@ -967,8 +970,15 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
     while (!isDone)
     {
 
+        if (currToken -> isError) {
+            hasLexcialError = true;
+            // print lexcial error along with line
+            printf("Lexical Error in the line number %d. %s does not match the language specifications \n", currToken->linenum, currToken->lexeme);
+            top = pop(top);
+            currToken = getNextToken(fp);
+        }
         // case 1 - top symbol is dollar
-        if (currToken->tokenId == DOLLAR)
+        else if (currToken->tokenId == DOLLAR)
         {
             if (top->symbolId == DOLLAR)
             {
@@ -1028,28 +1038,19 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
             // case 2 - error no production exists
             else
             {
-                // case - 1 input terminal is error
-                if (currToken->isError)
+                
+                printf("Syntatic Error in line number %d. Expecting any of [ ", currToken->linenum);
+
+                for (int i = 0; i < NUM_TERMINALS; i++)
                 {
-                    hasLexcialError = true;
-                    // print lexcial error along with line
-                    printf("Lexical Error in the line number %d. %s does not match the language specifications \n", currToken -> linenum, currToken->lexeme);
-                } 
-
-                // case - 2 no production exists
-                else {
-                    printf("Syntatic Error in line number %d. Expecting any of [ ", currToken->linenum);
-
-                    for (int i = 0; i < NUM_TERMINALS; i++)
+                    if (firstFollowSets->firstSets[top->symbolId][i])
                     {
-                        if (firstFollowSets->firstSets[top->symbolId][i])
-                        {
-                            printf("%s ,", TerminalIDs[i]);
-                        }
+                        printf("%s ,", TerminalIDs[i]);
                     }
-
-                    printf("], but received %s \n", TerminalIDs[currToken->tokenId]);
                 }
+
+                printf("], but received %s \n", TerminalIDs[currToken->tokenId]);
+                
 
                 
                 // error recovery panic mode.
@@ -1082,14 +1083,6 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
             // case 2 - error
             else
             {
-                // case - 1 input terminal is error
-                if (currToken->isError)
-                {
-                    hasLexcialError = true;
-                    // print lexcial error along with line
-                    printf("Lexical Error in the line number %d. %s does not match the language specifications \n", currToken->linenum, currToken->lexeme);
-                }
-
                 // case - 2 input terminal does not match with top of stack
                 printf("Syntatic Error in the line number %d. Received %s lexeme. Expecting %s instead of %s \n", currToken->linenum, currToken->lexeme, TerminalIDs[top->symbolId], TerminalIDs[currToken->tokenId]);
 
@@ -1098,7 +1091,6 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
 
                 // assuming input token to be same as stack top to procede with parsing
                 top = pop(top);
-                currToken = getNextToken(fp);
             }
         }
     }
