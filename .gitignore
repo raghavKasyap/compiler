@@ -6,3 +6,4 @@ a.exe
 /t1.txt
 /driver.o
 t1-clean.txt
+/output.txt
