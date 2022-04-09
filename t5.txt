@@ -60,4 +60,4 @@ _main
 	write(b5c6.tag );
 	return;
 end
-^
+^^

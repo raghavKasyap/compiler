@@ -1008,10 +1008,12 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
             {
                 int prodRuleNum = table[top->symbolId][currToken->tokenId];
 
-                GrammarRule *rule = &(grammar->productionRules[top->symbolId].rules[prodRuleNum]);
+                GrammarRule *rule = &(grammar->productionRules[top->symbolId].rules[prodRuleNum]); // we are retrieving rule by symbolId and ruleNumber
                 SymbolLinkedList *symbolsList = rule->rightHandSide;
 
                 ParseTreeNode *parentRef = top->refToParseTree;
+                parentRef -> ruleNumber = prodRuleNum;
+
                 top = pop(top);
 
                 if (!rule->isEpsilon)
@@ -1163,7 +1165,7 @@ void printTreeNode(ParseTreeNode *node, FILE *fptr)
     // nonterminals
     else if (node->type)
     {
-        fprintf(fptr, "%s %s %s %s \n", lexeme, parentName, isLeafNode, nodeSymbol);
+        fprintf(fptr, "%s %s %s %s %d \n", lexeme, parentName, isLeafNode, nodeSymbol, node -> ruleNumber);
     }
 };
 

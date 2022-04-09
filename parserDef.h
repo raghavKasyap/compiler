@@ -65,6 +65,7 @@ typedef struct ParseTreeNode {
     int numberOfChildren;
     int parentSymbolId; // -1 for root node;
     int lineNumber;
+    int ruleNumber;
     char* lexeme;
     Value* value; // contains values if numbers
     struct ParseTreeNode** children;
