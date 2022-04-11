@@ -7,3 +7,4 @@ a.exe
 /driver.o
 t1-clean.txt
 /output.txt
+/ast.o
