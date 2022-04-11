@@ -4,7 +4,6 @@
 #include <string.h>
 #include "parser.h"
 #include "ast.h"
-#include "symbol_table.h"
 
 ASTRoot* initializeAST() {
     ASTRoot* ast = (ASTRoot *) malloc (sizeof(ASTRoot));
@@ -17,6 +16,7 @@ ASTNode* initializeASTNode(bool isLeaf, NodeLabels nodeLabel) {
     newNode -> children = NULL;
     newNode -> numberOfChildren = 0;
     newNode -> astNode = NULL;
+    // what to initialize for operator?
     newNode -> isLeaf = isLeaf;
     newNode -> label = nodeLabel;
     return newNode;
@@ -30,16 +30,97 @@ void populateChild(ASTNode* root, ASTNode* child) {
 }
 
 void populateChildren(ASTNode* root, ASTNode* child){
-    // have to change this.
-    int currentChildChildren = root -> currChildrenSize;
-    int currentIndex = root->currChildrenSize;
-    if(root->numberOfChildren - root -> currChildrenSize < currentChildChildren){
-        root = realloc(root, 2*root->numberOfChildren);
-        root -> numberOfChildren* = 2;
+    int sizeOfChild = child -> numberOfChildren;
+    root -> children = realloc(root -> children, root -> numberOfChildren + sizeOfChild);
+    
+    for (int i = 0; i < sizeOfChild; i++) {
+        root -> children[root -> numberOfChildren + i] = child -> children[i];
+        child -> children[i] -> parent =  root;
     }
-    for(int i=0 ; i<child->currChildrenSize; i++){
-        root[currentIndex] = child[i];
-        currentIndex++;
+    
+    root -> numberOfChildren += sizeOfChild;
+}
+
+char fetchoperator(ParseTreeNode* parseNode){
+    ParseTreeNode* parsePrecedenceoperatorNode = parseNode -> children[0];
+    switch(parsePrecedenceoperatorNode -> symbolId){
+        case 44:{ // low precedence order
+            switch(parsePrecedenceoperatorNode -> ruleNumber){
+                case 0:{
+                    return '+';
+                }
+
+                case 1:{
+                    return '-';
+                }
+            }
+        }
+
+        case 47:{ // high precedence order
+            switch(parsePrecedenceoperatorNode -> ruleNumber){
+                case 0:{
+                    return '*';
+                }
+                
+                case 1:{
+                    return '/';
+                }
+            }
+        }
+    }
+}
+
+// void printAST(ASTNode* AST){
+//     if(AST->isLeaf == 1){
+//         printf("%s",AST->label);
+//     }
+//     else{
+//         printf("%s",AST->label);
+//     }
+
+// }
+
+ASTNode* ASTarithmeticHelper(ParseTreeNode* expprimeParseNode, ASTNode* termNode){
+    ASTNode* arithmeticExpressionNode = initializeASTNode(false, arithmeticExpression);
+
+    switch(expprimeParseNode -> ruleNumber){
+        case 0:{
+            ASTNode* termExpprimeNode = buildASTRecursive(expprimeParseNode -> children[1]);
+            arithmeticExpressionNode->op = fetchoperator(expprimeParseNode);
+
+            populateChild(arithmeticExpressionNode, termNode);
+            populateChild(arithmeticExpressionNode, termExpprimeNode);
+
+            ASTNode* arithmeticExpressionNodeActual = ASTarithmeticHelper(expprimeParseNode -> children[2], arithmeticExpressionNode);
+
+            return arithmeticExpressionNodeActual;
+        }
+
+        case 1:{ // null production
+            return termNode;
+        }
+    }
+}
+
+ASTNode* ASTtermHelper(ParseTreeNode* termprimeParseNode, ASTNode* factorNode){
+    ASTNode* termNode = initializeASTNode(false, arithmeticExpression);
+
+    switch(termprimeParseNode -> ruleNumber){
+        case 0:{
+            ASTNode* factortermprimeNode = buildASTRecursive(termprimeParseNode -> children[1]);
+            termNode->op = fetchoperator(termprimeParseNode);
+
+            populateChild(termNode, factorNode);
+            populateChild(termNode, factortermprimeNode);
+
+            ASTNode* termNodeActual = ASTtermHelper(termprimeParseNode -> children[2], termNode);
+
+            return termNodeActual;
+        }
+
+        case 1:{ // null production
+            return factorNode;
+        }
     }
 }
 
@@ -50,8 +131,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
     switch (symbolId) {
         case 0: { // program 
             ASTNode* programNode = initializeASTNode(false, program);
-            ASTNode* otherFunctionsList = buildASTRecursive(currNode -> children[0], program);
-            ASTNode* mainFunctionNode = buildASTRecursive(currNode -> children[1], program);
+            ASTNode* otherFunctionsList = buildASTRecursive(currNode -> children[0]);
+            ASTNode* mainFunctionNode = buildASTRecursive(currNode -> children[1]);
 
             populateChildren(programNode, otherFunctionsList);
             populateChildren(programNode, mainFunctionNode);
@@ -70,12 +151,12 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         }
 
         case 2: {  // otherfunctions
-            ASTNode* otherfunctions = initializeASTNode(false, otherfunctions);
+            ASTNode* otherfunctionsNode = initializeASTNode(false, otherfunctions);
             ASTNode* function = buildASTRecursive(currNode->children[0]);
             ASTNode* otherfunctions_1 = buildASTRecursive(currNode->children[1]);
 
-            populateChild(otherfunctions, function);
-            populateChildren(otherfunctions, otherfunctions_1);
+            populateChild(otherfunctionsNode, function);
+            populateChildren(otherfunctionsNode, otherfunctions_1);
         }
 
         case 3: { // stmts
@@ -86,11 +167,117 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             ASTNode* returnStmtsNode = buildASTRecursive(currNode -> children[3]);
 
             // adding these nodes to the stmtsNode as children nodes
+            populateChild(stmtsNode, typeDefinitionsNode);
+            populateChild(stmtsNode, declarationsNode);
+            populateChild(stmtsNode, otherStmtsNode);
+            populateChild(stmtsNode, returnStmtsNode);
+
+            return stmtsNode;
+        }
+
+        case 4:{ // function
+            ASTNode* functionNode = initializeASTNode(false, function);
+            ASTNode* TK_FUNID_Node = initializeASTNode(true, tkfunid);
+            TK_FUNID_Node -> astNode -> astFunctionNode.functionName = currNode -> children[0]->lexeme;
+            ASTNode* input_par_Node = buildASTRecursive(currNode -> children[1]);
+            ASTNode* output_par_Node = buildASTRecursive(currNode -> children[2]);
+            ASTNode* stmtsNode = buildASTRecursive(currNode -> children[4]);
+
+            populateChild(functionNode, TK_FUNID_Node);
+            populateChild(functionNode, input_par_Node);
+            populateChild(functionNode, output_par_Node);
+            populateChildren(functionNode, stmtsNode);
+
+            free(stmtsNode);
+
+            return functionNode;
+        }
+
+        case 5:{ //input_par
+            ASTNode* input_par_Node = initializeASTNode(false, inputpar);
+            ASTNode* parameter_list_Node = buildASTRecursive(currNode -> children[4]);
+
+            populateChildren(input_par_Node, parameter_list_Node);
+
+            free(parameter_list_Node);
+            
+            return input_par_Node;
+            
+        }
+
+        case 6: { // output_par
+            ASTNode* outputParNode = initializeASTNode(false, outputpar);
+            ASTNode* parameterListNode = buildASTRecursive(currNode -> children[4]);
+
+            populateChildren(outputParNode, parameterListNode);
+            free(parameterListNode);
+            
+            return  outputParNode;
+        }
+
+        case 7:{ //parameterlist
+            ASTNode* parameterListNode = initializeASTNode(false, parameterlist);
+            ASTNode* datatypeNode = buildASTRecursive(currNode -> children[0]);
+            ASTNode* TK_ID_Node = initializeASTNode(true, tkid);
+            TK_ID_Node->astNode->astIDNode.IdName = currNode -> children[1]->lexeme;
+            ASTNode* remainingListNode = buildASTRecursive(currNode -> children[2]);
+
+            populateChild(parameterListNode, datatypeNode);
+            populateChild(parameterListNode, TK_ID_Node);
+            populateChildren(parameterListNode, remainingListNode);
+
+            free(remainingListNode);
+            
+            return parameterListNode;
+        }
+
+        case 8: { //datatype
+            return buildASTRecursive(currNode -> children[0]); // same for both rules
+        }
+
+        case 9: { // remainingList
+            switch(currNode -> ruleNumber) {
+                case 0: {
+                    return buildASTRecursive(currNode -> children[1]);
+                }
+
+                case 1: {
+                    return initializeASTNode(true, null);
+                }
+            }
+            
+        }
+        
+        case 10: {  // primitveDataType
+            switch (currNode->ruleNumber) {
+                case 0: {  // INT_TYPE
+                    return initializeASTNode(true, tkint);
+                }
+
+                case 1: {  // REAL_TYPE
+                    return initializeASTNode(true, tkreal);
+                }
+            }
+        }
+
+        case 11:{ // constructiveDataType
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    return initializeASTNode(true, tkrecordruid);
+                }
+                case 1:{
+                    return initializeASTNode(true, tkunionruid);
+                }
+                case 2:{
+                    return initializeASTNode(true, type_def_ruid);
+                }
+            }
         }
 
         case 12: { // typedefinitionsNode;
+            ASTNode* typedefinitionsNode = initializeASTNode(false, typeDefinitions);
             switch (currNode -> ruleNumber) {
-                ASTNode* typedefinitionsNode = initializeAST(false, typeDefinition);
+                
                 case 0: { // rule 0 which derives records and unions
                     ASTNode* actualOrRedefined = buildASTRecursive(currNode -> children[0]);
                     ASTNode* otherTypeDefinitions = buildASTRecursive(currNode -> children[1]);
@@ -110,6 +297,67 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             }
         }
 
+        case 13: { // declarationsNode
+            ASTNode* declarationsNode = initializeASTNode(false, declarations);
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    ASTNode* declaration = buildASTRecursive(currNode -> children[0]);
+                    ASTNode* declarationsList = buildASTRecursive(currNode -> children[1]);
+                    
+                    populateChild(declarationsNode, declaration);
+                    populateChildren(declarationsNode, declarationsList);
+                    
+                    free(declarationsList);
+                    return declarationsNode;
+                }
+                case 1:{
+                    return declarationsNode;
+                }
+            }
+        }
+        
+        case 14: { // declaration
+            ASTNode* declarationNode = initializeASTNode(false, declaration);
+            ASTNode* datatypeNode = buildASTRecursive(currNode -> children[1]);
+            ASTNode* TK_ID_Node = initializeASTNode(true, tkid);
+            TK_ID_Node -> astNode -> astIDNode.IdName = currNode -> children[3] -> lexeme;
+            ASTNode* global_or_not_Node = buildASTRecursive( currNode -> children[4]);
+            
+            populateChildren(declarationNode, datatypeNode);
+            populateChild(declarationNode, TK_ID_Node);
+            populateChild(declarationNode, global_or_not_Node);
+            free(datatypeNode);
+
+            return declarationNode;
+            
+        }
+
+        case 15: { // otherstmts
+            ASTNode* otherStmtsNode = initializeASTNode(false, otherStmts);
+            switch (currNode -> ruleNumber) {
+                case 0: {
+                    ASTNode* stmtNode = buildASTRecursive(currNode->children[0]);
+                    ASTNode* otherStmtsList = buildASTRecursive(currNode->children[1]);
+                    
+                    populateChild(otherStmtsNode, stmtNode);
+                    populateChildren(otherStmtsNode, otherStmtsList);
+                    free(otherStmtsList);
+                    return otherStmtsNode;
+                }
+
+                case 1: {
+                    return otherStmtsNode;
+                }
+            }
+        }
+        
+        case 16: { //returnstmt
+            ASTNode* returnstmtNode = initializeASTNode(false, returnstmt);
+            ASTNode* optionalreturnNode = buildASTRecursive(currNode -> children[1]);
+
+            populateChildren(returnstmtNode, optionalreturnNode);
+        }
+
         case 17: { // actualOrRedefined variable
             switch (currNode -> ruleNumber) {
                 case 0: { // typedefinition
@@ -122,14 +370,14 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             }
         }
 
-        case 18: { // typedefinion
+        case 18: { // typedefinition
         
             switch (currNode -> ruleNumber) {
                 case 0: {  // record definition
-                    ASTNode* recordTypeDefinitionNode = initializeAST(false, recordDefinition);
-                    ASTNode* TK_RUID_Node = initializeAST(true, tkRuid);
+                    ASTNode* recordTypeDefinitionNode = initializeASTNode(false, recordDefinition);
+                    ASTNode* TK_RUID_Node = initializeASTNode(true, tkRuid);
                     
-                    TK_RUID_Node -> astNode -> astRUIDNo.ruidName = currNode -> children[1] -> lexeme;
+                    TK_RUID_Node -> astNode -> astRUIDNode.ruidName = currNode -> children[1] -> lexeme;
                     populateChild(recordTypeDefinitionNode, TK_RUID_Node);
                     
                     ASTNode* fieldDefinitionsList = buildASTRecursive(currNode -> children[2]);
@@ -140,10 +388,10 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                 }
 
                 case 1: {  // union definition
-                    ASTNode* unionTypeDefinitionNode = initializeAST(false, unionDefinition);
-                    ASTNode* TK_RUID_Node = initializeAST(true, tkRuid);
+                    ASTNode* unionTypeDefinitionNode = initializeASTNode(false, unionDefinition);
+                    ASTNode* TK_RUID_Node = initializeASTNode(true, tkRuid);
                     
-                    TK_RUID_Node -> astNode -> astRUIDNo.ruidName = currNode -> children[1] -> lexeme;
+                    TK_RUID_Node -> astNode -> astRUIDNode.ruidName = currNode -> children[1] -> lexeme;
                     populateChild(unionTypeDefinitionNode, TK_RUID_Node);
                     
                     ASTNode* fieldDefinitionsList = buildASTRecursive(currNode -> children[2]);
@@ -156,10 +404,10 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         }
         
         case 19: { // definetype statement
-            ASTNode* definetypestmtNode = initializeAST(false, definetypestmt);
+            ASTNode* definetypestmtNode = initializeASTNode(false, definetypestmt);
             ASTNode* A = buildASTRecursive(currNode -> children[1]);
-            ASTNode* TK_RUID_NODE1 = initializeAST(true, tkRuid);
-            ASTNode* TK_RUID_NODE2 = initializeAST(true, tkRuid);
+            ASTNode* TK_RUID_NODE1 = initializeASTNode(true, tkRuid);
+            ASTNode* TK_RUID_NODE2 = initializeASTNode(true, tkRuid);
 
             TK_RUID_NODE1 -> astNode -> astRUIDNode.ruidName = currNode -> children[2] ->lexeme;
             TK_RUID_NODE2 -> astNode -> astRUIDNode.ruidName = currNode -> children[4] ->lexeme;
@@ -171,7 +419,7 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         } 
         
         case 20: { // fieldDefinitions
-            ASTNode* fieldDefinitionsNode = initializeAST(false, fieldDefinitions);
+            ASTNode* fieldDefinitionsNode = initializeASTNode(false, fieldDefinitions);
             ASTNode* fieldDefinition_1 = buildASTRecursive(currNode -> children[0]);
             ASTNode* fieldDefinition_2 = buildASTRecursive(currNode -> children[1]);
             
@@ -195,8 +443,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         }
 
         case 22: { // moreFields
+            ASTNode* moreFieldsNode = initializeASTNode(false, moreFields);
             switch(currNode -> ruleNumber) {
-                ASTNode* moreFieldsNode = initializeAST(false, moreFields);
                 
                 case 0: {
                     ASTNode* fieldDefinitionNode = buildASTRecursive(currNode->children[0]);
@@ -220,22 +468,457 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                 }
 
                 case 1: { // ruid type
-                    ASTNode* TK_RUID_Node = initializeAST(true, tkRuid);
+                    ASTNode* TK_RUID_Node = initializeASTNode(true, tkRuid);
                     
-                    TK_RUID_Node -> astNode -> astRUIDNo.ruidName = currNode -> children[1] -> lexeme;
+                    TK_RUID_Node -> astNode -> astRUIDNode.ruidName = currNode -> children[1] -> lexeme;
                     return TK_RUID_Node;
                 }
             }
         }
+
+        case 24: {  // global_or_not
+            ASTNode* TK_Global_Node = initializeASTNode(true, tkglobal);
+            switch (currNode->ruleNumber) {
+                
+                case 0: {
+                    TK_Global_Node->astNode->astglobalNode.global = true;
+                    return TK_Global_Node;
+                }
+                case 1: {
+                    TK_Global_Node->astNode->astglobalNode.global = false;
+                    return TK_Global_Node;
+                }
+            }
+        }
         
-        case 10: { // primitveDataType
-            switch (currNode -> ruleNumber) {
-                case 0: { // INT_TYPE
-                    return initializeAST(true, tkint);
+        case 25: { // stmt
+            switch(currNode -> ruleNumber) {
+                case 0: { // assignment stmt
+                    return buildASTRecursive(currNode -> children[0]);
                 }
 
-                case 1: { // REAL_TYPE
-                    return initializeAST(true, tkreal);
+                case 1: { // iterative stmt
+                    return buildASTRecursive(currNode -> children[1]);
+                }
+
+                case 2: { // coinditional stmt
+                    return buildASTRecursive(currNode -> children[2]);
+                }
+
+                case 3: { // io stmt
+                    return buildASTRecursive(currNode -> children[3]);
+                }
+                
+                case 4: { // funcCallStmt
+                    return buildASTRecursive(currNode -> children[4]);
+                }
+            }
+        }
+
+        case 26: { // assignment stmt
+            ASTNode* assignmentStmtNode = initializeASTNode(false, assignmentStmt);
+            ASTNode* singleOrRecordIdNode = buildASTRecursive(currNode -> children[0]);
+            ASTNode* arithmeticExpNode = buildASTRecursive(currNode -> children[2]);
+
+            populateChild(assignmentStmtNode, singleOrRecordIdNode);
+            populateChild(assignmentStmtNode, arithmeticExpNode);
+            
+            return assignmentStmtNode;
+        }
+               
+        case 27: { // iterative
+            ASTNode* iterativeNode = initializeASTNode(false, iterativeStmt);
+            ASTNode* booleanExpressionNode = buildASTRecursive(currNode->children[2]);
+            ASTNode* stmtNode = buildASTRecursive(currNode->children[4]);
+            ASTNode* otherstmtsNode = buildASTRecursive(currNode->children[5]);
+
+            populateChild(iterativeNode, booleanExpressionNode);
+            populateChild(iterativeNode, stmtNode);
+            populateChildren(iterativeNode, otherstmtsNode);
+
+            return iterativeNode;
+        }
+
+        case 28: { // conditionalStmt
+            ASTNode* conditionalStmtNode = initializeASTNode(false, conditionalStmt); // this should point to new scope
+            ASTNode* booleanExpressionNode = buildASTRecursive(currNode -> children[2]);
+            ASTNode* stmtNode = buildASTRecursive(currNode -> children[5]);
+            ASTNode* otherStmtsList = buildASTRecursive(currNode -> children[6]);
+            ASTNode* elseConditionStmt = buildASTRecursive(currNode -> children[7]);
+
+            populateChild(conditionalStmtNode, booleanExpressionNode);
+            populateChild(conditionalStmtNode, stmtNode);
+            populateChildren(conditionalStmtNode, otherStmtsList);
+            populateChild(conditionalStmtNode, elseConditionStmt);
+            
+            free(otherStmtsList);
+            return conditionalStmtNode;
+        }
+        
+        case 29: { // iostmt
+            ASTNode* ioStmtNode = initializeASTNode(false, ioStmt);
+            ASTNode* readOrWrite;
+            switch (currNode -> ruleNumber) {
+                case 0: {
+                    readOrWrite = initializeASTNode(true, readFunc);
+                }
+
+                case 1: {
+                    readOrWrite = initializeASTNode(true, writeFunc);
+                }
+            }
+
+            ASTNode* varNode = buildASTRecursive(currNode -> children[2]);
+            populateChild(ioStmtNode, readOrWrite);
+            populateChild(ioStmtNode, varNode);
+
+            return ioStmtNode;
+        }
+
+        case 30:{ //funcall stmt
+            ASTNode* funcallstmtNode = initializeASTNode(false, funcallstmt);
+            ASTNode* outputparameters = buildASTRecursive(currNode->children[0]);
+            ASTNode* TK_FUNID_NODE = initializeASTNode(true, tkfunid);
+            TK_FUNID_NODE->astNode->astFunIdNode.funDefinition = NULL;
+            ASTNode* inputparameters = buildASTRecursive( currNode-> children[5]);
+            
+            populateChild(funcallstmtNode, outputparameters);
+            populateChild(funcallstmtNode, TK_FUNID_NODE);
+            populateChild(funcallstmtNode, inputparameters);
+
+            return funcallstmtNode;
+
+        }
+
+        case 31: { // singleOrRecordId
+            ASTNode* singleOrRecordIdNode = initializeASTNode(false, singleOrRecordId);
+            
+            ASTNode* TK_ID_Node = initializeASTNode(true, tkid);
+            TK_ID_Node -> astNode -> astIDNode.IdName = currNode -> children[0] -> lexeme;
+
+            populateChild(singleOrRecordIdNode, TK_ID_Node);
+
+            ASTNode* constructedVariableNode = buildASTRecursive(currNode -> children[1]);
+            populateChild(singleOrRecordIdNode, constructedVariableNode);
+
+            return singleOrRecordIdNode;
+        }
+
+        case 32: { // arithmetic expression
+            ASTNode* termNode = buildASTRecursive(currNode -> children[0]);
+            ASTNode* arithmeticExpressionNode = ASTarithmeticHelper(currNode ->children[1], termNode);
+            return arithmeticExpressionNode;
+        }
+        
+        case 33: { // constructedVariable
+            ASTNode* constructedVariableNode = initializeASTNode(false, constructedVariable);
+            switch (currNode -> ruleNumber) {
+                
+                case 0: {
+                    ASTNode* oneExpansionNode = buildASTRecursive(currNode -> children[0]);
+                    ASTNode* moreExpansionsNode = buildASTRecursive(currNode -> children[1]);
+
+                    populateChild(constructedVariableNode, oneExpansionNode);
+                    populateChildren(constructedVariableNode, moreExpansionsNode);
+                    free(moreExpansionsNode);
+                    return constructedVariableNode;
+                }
+
+                case 1: {
+                    return constructedVariableNode;
+                }
+            }
+        }
+        
+        case 34: { // oneExpansion
+            ASTNode* TK_FIELDID_Node = initializeASTNode(true, tkFieldId);
+            TK_FIELDID_Node -> astNode -> astFieldIdNode.fieldName = currNode -> children[1] -> lexeme;
+            return TK_FIELDID_Node;
+        }
+
+        case 35: { // moreExpansion
+            ASTNode* moreExpansionsNode = initializeASTNode(false, moreExpansions);
+            
+            if (currNode -> ruleNumber == 0) {
+                ASTNode* oneExpansionNode = buildASTRecursive(currNode->children[0]);
+                ASTNode* moreExpansionsList = buildASTRecursive(currNode->children[1]);
+
+                populateChild(moreExpansionsNode, oneExpansionNode);
+                populateChildren(moreExpansionsNode, moreExpansionsList);
+                free(moreExpansionsList);
+            }
+            
+            return moreExpansionsNode;
+        }
+
+        case 36:{ //outputParameters
+            ASTNode* outputparametersNode = initializeASTNode(false, outputparameters);
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    ASTNode* idList = buildASTRecursive(currNode->children[1]);
+
+                    populateChildren(outputparametersNode,idList);
+                   
+                    return outputparametersNode;
+                }
+                case 1:{
+                    ASTNode* Null = initializeASTNode(true, null);
+                   
+                    populateChild(outputparametersNode, Null);
+
+                    return outputparametersNode;
+                }
+            }
+        }
+
+        case 37:{ //inputParameters
+            ASTNode* inputparametersNode = initializeASTNode(false, inputparameters);
+            ASTNode* idList = buildASTRecursive(currNode->children[1]);
+            
+            populateChildren(inputparametersNode, idList);
+
+            return inputparametersNode;
+        }
+
+        case 38:{ //idlist
+            ASTNode* idListNode = initializeASTNode(false, idlist);
+            ASTNode* TK_ID_NODE = initializeASTNode(true, tkid);
+            TK_ID_NODE->astNode->astFieldIdNode.fieldName =  currNode -> children[0]->lexeme;
+            ASTNode* more_ids = buildASTRecursive( currNode -> children[1]);
+
+            populateChild(idListNode,TK_ID_NODE);
+            populateChildren(idListNode, more_ids);
+
+            free(idListNode);
+
+            return idListNode;
+        }
+         
+        case 39:{//booleanExpression
+            ASTNode* booleanExpressionNode = initializeASTNode(false, booleanExpression);
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    ASTNode* booleanExpression_1 = buildASTRecursive(currNode->children[1]);
+                    ASTNode* logicalopNode = buildASTRecursive(currNode->children[3]);
+                    ASTNode* booleanExpression_2 = buildASTRecursive(currNode->children[5]);
+
+                    populateChild(booleanExpressionNode,booleanExpression_1);
+                    populateChild(booleanExpressionNode, logicalopNode);
+                    populateChild(booleanExpressionNode, booleanExpression_2);
+
+                    return booleanExpressionNode;
+                }
+                
+                case 1:{
+                    ASTNode* var_1 = buildASTRecursive(currNode -> children[0]);
+                    ASTNode* relationalopNode = buildASTRecursive(currNode -> children[1]);
+                    ASTNode* var_2 = buildASTRecursive(currNode -> children[2]);
+
+                    populateChild(booleanExpressionNode, var_1);
+                    populateChild(booleanExpressionNode, relationalopNode);
+                    populateChild(booleanExpressionNode, var_2);
+                    
+                    return booleanExpressionNode;
+                }
+                
+                case 2:{
+                    ASTNode* booleanExpression_3 = buildASTRecursive(currNode->children[2]);
+                    populateChildren(booleanExpressionNode, booleanExpression_3);
+
+                    free(booleanExpression_3);
+
+                    return booleanExpressionNode;
+                }
+            }
+            
+        }       
+        
+        case 40: { // elsecondition
+            ASTNode* elseConditionNode = initializeASTNode(false, errorCondition);
+            switch (currNode -> ruleNumber) {
+                
+                case 0: {
+                    ASTNode* stmtNode = buildASTRecursive(currNode -> children[1]);
+                    ASTNode* otherStmtsNode = buildASTRecursive(currNode -> children[2]);
+                    // this will also have its own scope.
+                    populateChild(elseConditionNode, stmtNode);
+                    populateChildren(elseConditionNode, otherStmtsNode);
+                    free (otherStmtsNode);
+
+                    return elseConditionNode;
+                }
+
+                case 1: {
+                    return elseConditionNode;
+                }
+            }
+        }
+        
+        case 41: { // var
+            switch (currNode->ruleNumber) {
+                case 0: { // singleorrecordid
+                    return buildASTRecursive(currNode->children[0]);
+                }
+
+                case 1: {
+                    ASTNode* TK_NUM_Node = initializeASTNode(true, tknum);
+                    // have to create a node to store the value of tknum
+                    return TK_NUM_Node;
+                }
+
+                case 2: {
+                    ASTNode* TK_RNUM_Node = initializeASTNode(true, tkrnum);
+                    // have to create an node to store the value of tkrnum
+                    return TK_RNUM_Node;
+                }
+            }
+        }
+
+        case 42:{ // term
+            ASTNode* factorNode = buildASTRecursive(currNode -> children[0]);
+            ASTNode* termNode = ASTtermHelper(currNode -> children[1], factorNode);
+
+
+            return termNode;
+        }
+
+       /* case 43: { //expPrime
+            ASTNode* expprimeNode = initializeASTNode(false, expprime);
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    ASTNode* lowprecedenceoperatorNode = buildASTRecursive(currNode -> children [0]);
+                    ASTNode* termNode = buildASTRecursive(currNode -> children[1]);
+                    ASTNode* expprime_1 = buildASTRecursive(currNode -> children[2]);
+
+                    populateChild(expprimeNode, lowprecedenceoperatorNode);
+                    populateChild(expprimeNode, termNode);
+                    populateChildren(expprimeNode, expprime_1);
+
+                    free(expprime_1);
+
+                    return expprimeNode;
+                }
+                
+                case 1:{
+                    return initializeASTNode(true, null);
+                }
+            }
+        }
+
+        case 44: { //lowprecedenceoperator
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    return initializeASTNode(true, tkplus);
+                }
+                case 1: {
+                    return initializeASTNode(true, tkminus);
+                }
+            }
+
+        }*/
+        
+        case 45: { //factor
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    return buildASTRecursive(currNode -> children[1]);
+                }
+                case 1:{
+                    return buildASTRecursive(currNode -> children[0]);
+                }
+            }
+
+        }
+
+       /* case 46: { //termPrime
+            ASTNode* termPrimeNode = intializeASTNode(false, termPrime);
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    ASTNode* highPrecedenceOperatorNode = buildASTRecursive( currNode -> children[0]);
+                    ASTNode* factorNode = buildASTRecursive( currNode -> children[1]);
+                    ASTNode* termPrime_1 = buildASTRecursive( currNode -> children[2]);
+
+                    populateChild(termPrimeNode, highPrecedenceOperatorNode);
+                    populateChild(termPrimeNode, factorNode);
+                    populateChildren(termPrimeNode, termPrime_1);
+
+                    free(termPrime_1);
+                    
+                    return termPrimeNode;
+                }
+            }
+
+        }
+
+        case 47:{ //highprecedenceoperator
+            switch (currNode->ruleNumber) {
+                case 0: {
+                    return initializeASTNode(true, tkmul);
+                }
+                case 1: {
+                    return initializeASTNode(true, tkdiv);
+                }
+            }
+        }*/
+        
+        case 48: { //logicalOp
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    return initializeASTNode(true, tkand);
+                }
+                case 1:{
+                    return initializeASTNode(true, tkor);
+                }
+            }
+        }
+        
+        case 49:{ // relationalOp
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    return initializeASTNode(true, tklt);
+                }
+                case 1:{
+                    return initializeASTNode(true, tkle);
+                }
+                case 2:{
+                    return initializeASTNode(true, tkeq);
+                }
+                case 3:{
+                    return initializeASTNode(true, tkgt);
+                }
+                case 4:{
+                    return initializeASTNode(true, tkge);
+                }
+                case 5:{
+                    return initializeASTNode(true, tkne);
+                }
+            }
+        }
+            
+        case 50: {// optionalReturn
+
+            ASTNode* optionalReturnNode = initializeASTNode(false, optionalReturn);
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    ASTNode* idList = buildASTRecursive(currNode -> children[1]);
+
+                    populateChildren(optionalReturnNode, idList);
+                    return optionalReturnNode;
+
+                }
+                case 1:{
+                    return optionalReturnNode;
+                }
+            }
+        }
+
+        case 51:{ //moreids
+            switch(currNode -> ruleNumber){
+                case 0:{
+                    return buildASTRecursive(currNode -> children[1]);
+                }
+                case 1:{
+                    ASTNode* Null= initializeASTNode(true, null);
+                    return Null;
                 }
             }
         }
@@ -246,7 +929,7 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     return initializeASTNode(true, record);
                 }
                 case 1: {
-                    return initializeASTNode(true, union);
+                    return initializeASTNode(true, unionStruct);
                 }
             }
         }
