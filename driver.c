@@ -9,6 +9,7 @@
 #include <time.h>
 #include "lexer.h"
 #include "parser.h"
+#include "ast.h"
 
 // function for printing cmd line interface
 void printInterface(){
@@ -18,6 +19,7 @@ void printInterface(){
     printf("Press 2 to get all the tokens of the source code from the lexer\n");
     printf("Press 3 to parse the source code\n");
     printf("Press 4 to get the total time taken for parsing\n");
+    printf("Press 5 to get AST tree\n");
 }
 
 
@@ -108,6 +110,24 @@ int main(int argc,char** argv) {
             total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
 
             printf("\nTotal CPU Time = %.2f clocks \nTotal CPU Time(in secs) = %.3f seconds \n \n", total_CPU_time, total_CPU_time_in_seconds);
+        }
+
+        else if(choice == 5){
+            // storing the grammar of the langugae into the grammar data structure
+            grammar = generateGrammarFromFile("grammar.txt");
+
+            // calculating first and follow sets and storing them in firstAndFollowSets data strcture
+            firstAndFollowSets = computeFirstAndFollowSets(grammar);
+            
+            // creating the parse table
+            ParseTable table;
+            table = createParseTable(firstAndFollowSets, table, grammar);
+            
+            // parsing the input source code
+            ParseTreeRoot *tree = parseInputSourceCode(sourcefile, table, grammar, firstAndFollowSets);
+
+            ASTRoot* astTree = buildAST(tree);
+            printf("hell");
         }
     }
 

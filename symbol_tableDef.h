@@ -80,16 +80,16 @@ typedef union SymbolRecord {
     // FunctionParameters functionParameters;
 } SymbolRecord;
 
-typedef struct Symbol {
+typedef struct SymbolInstance {
     TokenInfo* token;
     int offset; 
     SymbolTag symbolTag;
     SymbolRecord symbolRecord;
-    struct Symbol* next;
-} Symbol;
+    struct SymbolInstance* next;
+} SymbolInstance;
 
 typedef struct SymbolTable {
-    Symbol** symbolsHashTable;
+    SymbolInstance** symbolsHashTable;
     int currentOffset;
     int scope; // for making the hashtable dynamic
     struct SymbolTable* globalTable; // storing the address of global symobl table to acces global attributes (variables and records and typedefinitions).
