@@ -101,12 +101,12 @@ typedef struct AST_TK_FUNID{
 }AST_TK_FUNID;
 
 typedef union ASTNodeUnion {
-    ASTFunctionNode astFunctionNode;
-    AST_TK_RUID astRUIDNode;
-    AST_TK_FIELDID astFieldIdNode;
-    AST_TK_ID astIDNode;
-    AST_TK_GLOBAL astglobalNode;
-    AST_TK_FUNID astFunIdNode;
+    ASTFunctionNode* astFunctionNode;
+    AST_TK_RUID* astRUIDNode;
+    AST_TK_FIELDID* astFieldIdNode;
+    AST_TK_ID* astIDNode;
+    AST_TK_GLOBAL* astglobalNode;
+    AST_TK_FUNID* astFunIdNode;
 } ASTNodeUnion;
 
 typedef struct ASTNode {
