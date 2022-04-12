@@ -143,11 +143,11 @@ Operator fetchoperator(ParseTreeNode* parseNode){
 }
 
  void printAST(ASTNode* AST){
-    printf("%s \n",astLabel[AST->label]);
-    if(AST->isLeaf == 1){
+    printf("%s \n", astLabel[AST->label]);
+    if (AST->isLeaf == 1) {
         return;
     }
-    else{
+    else {
         for(int i=0;i< AST -> numberOfChildren; i++){
             printAST(AST->children[i]);
         }
@@ -207,49 +207,49 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         case 0: { // program 
             
             ASTNode* programNode = initializeASTNode(false, program);
-            printf("prgm1\n");
-            printf("Symbol id of otherfunclist is %d \n", currNode -> children[0]->symbolId);
+            
+            
             ASTNode* otherFunctionsList = buildASTRecursive(currNode -> children[0]);
-            printf("prgrm2\n");
+            
             ASTNode* mainFunctionNode = buildASTRecursive(currNode -> children[1]);
-            printf("prgm3 \n");
+            
             populateChildren(programNode, otherFunctionsList);
-            printf("prgm4 \n");
+            
             populateChildren(programNode, mainFunctionNode);
-            printf("prgm 5 \n");
+            
             free(otherFunctionsList);
             return programNode;
             
         }
         
         case 2: { // main function
-            printf("main 0 \n");
+            
             ASTNode* mainFunctionNode = initializeASTNode(false, function);
             // main function should have access to global scope.
 
             ASTNode* stmts = buildASTRecursive(currNode -> children[1]); // building the ast subtree for stmts
-            printf("main 1\n");
+            
             populateChildren(mainFunctionNode, stmts);
-            printf("main 2 \n");
+            
             free(stmts); // removing the stmts nodes as it is no longer required
             
             return mainFunctionNode;
         }
 
         case 1: {  // otherfunctions
-            printf("othrfncs1\n");
+            
             ASTNode* otherfunctionsNode = initializeASTNode(false, otherfunctions);
             switch(currNode -> ruleNumber){
                 case 0:{
-                    printf("otherfnctions2\n");
+                    
                     ASTNode* function = buildASTRecursive(currNode->children[0]);
-                    printf("otherfunctions3 \n");
+                    
                     ASTNode* otherfunctions_1 = buildASTRecursive(currNode->children[1]);
-                    printf("otherfunctions4 \n");
+                    
                     populateChild(otherfunctionsNode, function);
-                    printf("otherfunction5 \n");
+                    
                     populateChildren(otherfunctionsNode, otherfunctions_1);
-                    printf("otherfunctions6 \n");
+                    
                     
                     return otherfunctionsNode;
                 }
@@ -259,69 +259,69 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                 }
             }
 
-            printf("otherfnctions2\n");
+            
             ASTNode* function = buildASTRecursive(currNode->children[0]);
-            printf("otherfunctions3 \n");
+            
             ASTNode* otherfunctions_1 = buildASTRecursive(currNode->children[1]);
-            printf("otherfunctions4 \n");
+            
             populateChild(otherfunctionsNode, function);
-            printf("otherfunction5 \n");
+            
             populateChildren(otherfunctionsNode, otherfunctions_1);
-            printf("otherfunctions6 \n");
+            
             
             return otherfunctionsNode;
         }
 
         case 3: { // stmts
             ASTNode* stmtsNode = initializeASTNode(false, stmts);
-            printf("stmts 0 \n");
+            
             ASTNode* typeDefinitionsNode = buildASTRecursive(currNode -> children[0]);
-            printf("stmts 1 \n");
+            
             ASTNode* declarationsNode = buildASTRecursive(currNode -> children[1]);
-            printf("stmts 2 \n");
+            
             ASTNode* otherStmtsNode = buildASTRecursive(currNode -> children[2]);
-            printf("stmts 3 \n");
+            
             ASTNode* returnStmtsNode = buildASTRecursive(currNode -> children[3]);
-            printf("stmts 4 \n");
+            
 
             // adding these nodes to the stmtsNode as children nodes
             populateChild(stmtsNode, typeDefinitionsNode);
-            printf("stmts 5 \n");
+            
             populateChild(stmtsNode, declarationsNode);
-            printf("stmts 6 \n");
+            
             populateChild(stmtsNode, otherStmtsNode);
-            printf("stmts 7 \n");
+            
             populateChild(stmtsNode, returnStmtsNode);
-            printf("stmts 8 \n");
+            
 
             return stmtsNode;
         }
 
         case 4:{ // function
-            printf("fnc1\n");
+            
             ASTNode* functionNode = initializeASTNode(false, function);
-            printf("fnc2\n");
+            
             ASTNode* TK_FUNID_Node = initializeASTNode(true, tkfunid);
-            printf("fnc3\n");
-            printf("fnc3.1\n");
+            
+            
             TK_FUNID_Node -> astNode -> astFunctionNode = (ASTFunctionNode *) malloc(sizeof(ASTFunctionNode));
             TK_FUNID_Node -> astNode -> astFunctionNode -> functionName = currNode -> children[0]->lexeme;
-            printf("fnc3.5\n");
+            
             ASTNode* input_par_Node = buildASTRecursive(currNode -> children[1]);
-            printf("fnc4\n");
+            
             ASTNode* output_par_Node = buildASTRecursive(currNode -> children[2]);
-            printf("func5 \n");
+            
             ASTNode* stmtsNode = buildASTRecursive(currNode -> children[4]);
-            printf("fun6 /n");
+            
 
             populateChild(functionNode, TK_FUNID_Node);
-            printf("fun7 \n");
+            
             populateChild(functionNode, input_par_Node);
-            printf("fun8 \n");
+            
             populateChild(functionNode, output_par_Node);
-            printf("fun9 \n");
+            
             populateChildren(functionNode, stmtsNode);
-            printf("fun10 \n");
+            
 
             free(stmtsNode);
 
@@ -330,11 +330,11 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
 
         case 5:{ //input_par
             ASTNode* input_par_Node = initializeASTNode(false, inputpar);
-            printf("intput par1 \n");
+            
             ASTNode* parameter_list_Node = buildASTRecursive(currNode -> children[4]);
-            printf("intput par2 \n");
+            
             populateChildren(input_par_Node, parameter_list_Node);
-            printf("input par3 \n");
+            
             free(parameter_list_Node);
             
             return input_par_Node;
@@ -353,25 +353,25 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
 
         case 7:{ //parameterlist
             ASTNode* parameterListNode = initializeASTNode(false, parameterlist);
-            printf("parameterlist1 \n");
+            
             ASTNode* datatypeNode = buildASTRecursive(currNode -> children[0]);
-            printf("parameterlist2 \n");
+            
             ASTNode* TK_ID_Node = initializeASTNode(true, tkid);
-            printf("parameterlist3 \n");
+            
             TK_ID_Node->astNode->astIDNode = (AST_TK_ID*)malloc(sizeof(AST_TK_ID));
             TK_ID_Node->astNode->astIDNode->IdName = currNode -> children[1]->lexeme;
-            printf("parameter list4 \n");
+            
             ASTNode* remainingListNode = buildASTRecursive(currNode -> children[2]);
-            printf("parameter list5 \n");
+            
 
             populateChild(parameterListNode, datatypeNode);
-            printf("parameter list6 \n");
+            
             populateChild(parameterListNode, TK_ID_Node);
-            printf("parameter list7\n");
+            
             populateChildren(parameterListNode, remainingListNode);
-            printf("parameter list8\n");
+            
             free(remainingListNode);
-            printf("parameter list9\n");
+            
             return parameterListNode;
         }
 
@@ -393,7 +393,7 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         }
         
         case 10: {  // primitveDataType
-            printf("primitive data type \n");
+            
             switch (currNode->ruleNumber) {
                 case 0: {  // INT_TYPE
                     return initializeASTNode(true, tkint);
@@ -406,7 +406,7 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         }
 
         case 11:{ // constructiveDataType
-            printf("constructed data type \n");
+            
             switch(currNode -> ruleNumber){
                 case 0:{
                     return initializeASTNode(true, tkrecordruid);
@@ -422,28 +422,28 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
 
         case 12: { // typedefinitionsNode;
             ASTNode* typedefinitionsNode = initializeASTNode(false, typeDefinitions);
-            printf("typedefinitions 0 \n");
+            
             switch (currNode -> ruleNumber) {
                 
                 case 0: { // rule 0 which derives records and unions
-                    printf("typedefintions 0.5\n");
+                    
                     ASTNode* actualOrRedefined = buildASTRecursive(currNode -> children[0]);
-                    printf("typedefinitions 1 \n");
+                    
                     ASTNode* otherTypeDefinitions = buildASTRecursive(currNode -> children[1]);
-                    printf("typedefinitions 2 \n");
+                    
                     // add the first typedefinition 
                     populateChild(typedefinitionsNode, actualOrRedefined);
-                    printf("typedefinitions 3 \n");
+                    
                     // add all the below defined definitions
                     populateChildren(typedefinitionsNode, otherTypeDefinitions);
-                    printf("typedefinitions 4 \n");
+                    
                     free(otherTypeDefinitions);
 
                     return typedefinitionsNode;
                 }
 
                 case 1: {  // eps production
-                    printf("typedefinitions 5 \n");
+                    
                     return typedefinitionsNode;
                 }
             }
@@ -487,83 +487,83 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
 
         case 15: { // otherstmts
             ASTNode* otherStmtsNode = initializeASTNode(false, otherStmts);
-            printf("otherstmts 0 \n");
+            
             switch (currNode -> ruleNumber) {
                 case 0: {
-                    printf("otherstms 0.5 \n");
+                    
                     ASTNode* stmtNode = buildASTRecursive(currNode->children[0]);
-                    printf("otherstmts 1 \n");
+                    
                     ASTNode* otherStmtsList = buildASTRecursive(currNode->children[1]);
-                    printf("otherstmts 2 \n");
+                    
 
                     populateChild(otherStmtsNode, stmtNode);
-                    printf("otherstmts 3 \n");
+                    
                     populateChildren(otherStmtsNode, otherStmtsList);
-                    printf("otherstmts 4 \n");
+                    
                     free(otherStmtsList);
                     return otherStmtsNode;
                 }
 
                 case 1: {
-                    printf("otherstmts 5 \n");
+                    
                     return otherStmtsNode;
                 }
             }
-            printf("otherstmts 6\n");
+            
         }
         
         case 16: { //returnstmt
-            printf("returnstmt 0\n");
+            
             ASTNode* returnstmtNode = initializeASTNode(false, returnstmt);
             ASTNode* optionalreturnNode = buildASTRecursive(currNode -> children[1]);
-            printf("returnstmt 1");
+            
 
             populateChildren(returnstmtNode, optionalreturnNode);
-            printf("returnstmt2");
+            
 
             return returnstmtNode;
         }
 
         case 17: { // actualOrRedefined variable
-            printf("actualorRedefined 0 \n");
+            
             switch (currNode -> ruleNumber) {
                 case 0: { // typedefinition
-                     printf("actualorRedefined 1 \n");
+                     
                     return buildASTRecursive(currNode -> children[0]);
                 }
 
                 case 1: { // definetypestmt
-                    printf("actualorRedefined 2 \n");
+                    
                     return buildASTRecursive(currNode -> children[0]);
                 }
             }
-            printf("actualorRedefined 3 \n");
+            
         }
 
         case 18: { // typedefinition
-            printf("typedefinition 0 \n");
+            
             switch (currNode -> ruleNumber) {
                 case 0: {  // record definition
-                    printf("typedefinition 1 \n");
+                    
                     ASTNode* recordTypeDefinitionNode = initializeASTNode(false, recordDefinition);
                     ASTNode* TK_RUID_Node = initializeASTNode(true, tkRuid);
 
                     TK_RUID_Node -> astNode -> astRUIDNode = (AST_TK_RUID*)malloc(sizeof(AST_TK_RUID));
                     TK_RUID_Node -> astNode -> astRUIDNode->ruidName = currNode -> children[1] -> lexeme;
                     populateChild(recordTypeDefinitionNode, TK_RUID_Node);
-                    printf("typedefinition 2 \n");
+                    
 
                     ASTNode* fieldDefinitionsList = buildASTRecursive(currNode -> children[2]);
-                    printf("typedefinition 3 \n");
+                    
                     populateChildren(recordTypeDefinitionNode, fieldDefinitionsList);
-                    printf("typedefinition 4 \n");
+                    
                     free(fieldDefinitionsList);
                     
                     return recordTypeDefinitionNode;
                 }
 
                 case 1: {  // union definition
-                    printf("typedefinition 5 \n");
+                    
                     ASTNode* unionTypeDefinitionNode = initializeASTNode(false, unionDefinition);
                     ASTNode* TK_RUID_Node = initializeASTNode(true, tkRuid);
                     
@@ -572,71 +572,71 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     populateChild(unionTypeDefinitionNode, TK_RUID_Node);
                     
                     ASTNode* fieldDefinitionsList = buildASTRecursive(currNode -> children[2]);
-                    printf("typedefinition 6 \n");
+                    
                     populateChildren(unionTypeDefinitionNode, fieldDefinitionsList);
                     free(fieldDefinitionsList);
 
                     return unionTypeDefinitionNode;
                 }
             }
-            printf("typedefinition 7 \n");
+            
         }
         
         case 19: { // definetype statement
-            printf("definetype stmt 0 \n");
+            
             ASTNode* definetypestmtNode = initializeASTNode(false, definetypestmt);
-            printf("definetype stmt 1 \n");
+            
             ASTNode* A = buildASTRecursive(currNode -> children[1]);
             ASTNode* TK_RUID_NODE1 = initializeASTNode(true, tkRuid);
             ASTNode* TK_RUID_NODE2 = initializeASTNode(true, tkRuid);
 
-            printf("definetype stmt 1 . 5\n");
+            
             TK_RUID_NODE1 -> astNode -> astRUIDNode = (AST_TK_RUID*)malloc(sizeof(AST_TK_RUID));
             TK_RUID_NODE2 -> astNode -> astRUIDNode = (AST_TK_RUID*)malloc(sizeof(AST_TK_RUID));
 
-            printf("definetype stmt 2 \n");
+            
 
             TK_RUID_NODE1 -> astNode -> astRUIDNode->ruidName = currNode -> children[2] ->lexeme;
             TK_RUID_NODE2 -> astNode -> astRUIDNode->ruidName = currNode -> children[4] ->lexeme;
 
-                        printf("definetype stmt 3 \n");
+                        
 
             populateChild(definetypestmtNode, A);
             populateChild(definetypestmtNode, TK_RUID_NODE1);
             populateChild(definetypestmtNode, TK_RUID_NODE2);
 
-                        printf("definetype stmt 4 \n");
+                        
 
             return definetypestmtNode;
         } 
         
         case 20: { // fieldDefinitions
-            printf("fileddefinitions 0 \n");
+            
             ASTNode* fieldDefinitionsNode = initializeASTNode(false, fieldDefinitions);
             ASTNode* fieldDefinition_1 = buildASTRecursive(currNode -> children[0]);
-            printf("fileddefinitions 1 \n");
+            
             ASTNode* fieldDefinition_2 = buildASTRecursive(currNode -> children[1]);
-            printf("fileddefinitions 2 \n");
+            
             populateChild(fieldDefinitionsNode, fieldDefinition_1);
             populateChild(fieldDefinitionsNode, fieldDefinition_2);
 
             ASTNode* moreFieldsNode = buildASTRecursive(currNode -> children[2]);
-            printf("fileddefinitions 3 \n");
+            
             populateChildren(fieldDefinitionsNode, moreFieldsNode);
-            printf("fielddefinitions 4\n");
+            
             free(moreFieldsNode);
             return fieldDefinitionsNode;
         }
 
         case 21: {  // fieldDefinition
-            printf("fileddefinition 0 \n");
+            
             ASTNode* fieldDefinitionNode = initializeASTNode(false, fieldDefinition);
             ASTNode* fieldTypeNode = buildASTRecursive(currNode -> children[1]);
-            printf("fileddefinition 1 \n");
+            
             ASTNode* TK_FIELDID_Node = initializeASTNode(true, tkFieldId);
             TK_FIELDID_Node -> astNode -> astFieldIdNode = (AST_TK_FIELDID*) malloc(sizeof(AST_TK_FIELDID));
             TK_FIELDID_Node -> astNode -> astFieldIdNode->fieldName = currNode -> children[3] -> lexeme;
-            printf("fileddefinition 2 \n");
+            
             populateChild(fieldDefinitionNode, fieldTypeNode);
             populateChild(fieldDefinitionNode, TK_FIELDID_Node);
             return fieldDefinitionNode;
@@ -664,17 +664,17 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         case 23: { // fieldType
             switch (currNode -> ruleNumber) {
                 case 0: { // primitive datatype
-                    printf("fieldType 0 \n");
+                    
                     return buildASTRecursive(currNode -> children[0]);
                 }
 
                 case 1: { // ruid type
                     ASTNode* TK_RUID_Node = initializeASTNode(true, tkRuid);
                     
-                    printf("fieldType 1 \n");
+                    
                     TK_RUID_Node -> astNode -> astRUIDNode = (AST_TK_RUID*)malloc(sizeof(AST_TK_RUID));
                     TK_RUID_Node -> astNode -> astRUIDNode->ruidName = currNode -> children[0] -> lexeme;
-                    printf("fieldTYpe 2 \n");
+                    
                     return TK_RUID_Node;
                 }
             }
@@ -697,34 +697,34 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         }
         
         case 25: { // stmt
-            printf("stmt 0 \n");
+            
             switch(currNode -> ruleNumber) {
                 case 0: { // assignment stmt
-                    printf("stmt 1 \n");
+                    
                     return buildASTRecursive(currNode -> children[0]);
                 }
 
                 case 1: { // iterative stmt
-                    printf("stmt 2 \n");
+                    
                     return buildASTRecursive(currNode -> children[0]);
                 }
 
                 case 2: { // coinditional stmt
-                    printf("stmt 3 \n");
+                    
                     return buildASTRecursive(currNode -> children[0]);
                 }
 
                 case 3: { // io stmt
-                    printf("stmt 4 \n");
+                    
                     return buildASTRecursive(currNode -> children[0]);
                 }
                 
                 case 4: { // funcCallStmt
-                    printf("stmt 6 \n");
+                    
                     return buildASTRecursive(currNode -> children[0]);
                 }
             }
-            printf("stmt 7 \n");
+            
         }
 
         case 26: { // assignment stmt
@@ -768,28 +768,28 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         }
         
         case 29: { // iostmt
-            printf("iostmt 0 \n");
+            
             ASTNode* ioStmtNode = initializeASTNode(false, ioStmt);
             ASTNode* readOrWrite;
-            printf("iostmt 0.5 \n");
+            
             switch (currNode -> ruleNumber) {
                 case 0: {
-                    printf("iostmt 1 \n");
+                    
                     readOrWrite = initializeASTNode(true, readFunc);
                 }
 
                 case 1: {
-                    printf("iostmt 2 \n");
+                    
                     readOrWrite = initializeASTNode(true, writeFunc);
                 }
             }
-            printf("iostmt 3 \n");
+            
             ASTNode* varNode = buildASTRecursive(currNode -> children[2]);
-            printf("iostmt 4\n");
+            
             populateChild(ioStmtNode, readOrWrite);
-            printf("iostmt 5 \n");
+            
             populateChild(ioStmtNode, varNode);
-            printf("iostmt 6 \n");
+            
 
             return ioStmtNode;
         }
