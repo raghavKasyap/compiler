@@ -62,6 +62,7 @@ typedef enum NodeLabels {
     tkgt,
     tkge,
     tkne,
+    tknot,
     errorCondition,
     arithmeticExpression,
     term,
@@ -74,6 +75,14 @@ typedef enum NodeLabels {
     typeDefinitions,
     optionalReturn,
 } NodeLabels;
+
+typedef enum Operator{
+    noOperator,
+    plus,
+    minus,
+    division,
+    multiplication,
+}Operator;
 
 typedef struct ASTFunctionNode {
     SymbolTable* functionScope; // each function has its own scope and main function will have global scope
@@ -113,7 +122,7 @@ typedef struct ASTNode {
     NodeLabels label;
     ASTNodeUnion* astNode;
     int numberOfChildren;
-    char op;
+    Operator op;
     struct ASTNode* parent;
     struct ASTNode** children;
     bool isLeaf;

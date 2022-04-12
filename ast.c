@@ -5,6 +5,77 @@
 #include "parser.h"
 #include "ast.h"
 
+char* astLabel[] = {
+    "program",
+    "otherfunctions",
+    "function",
+    "inputpar",
+    "parameterlist",
+    "mainFunction",
+    "stmts",
+    "recordDefinition",
+    "unionDefinition",
+    "tkRuid",
+    "fieldDefinitions",
+    "moreFields",
+    "fieldDefinition",
+    "tkFieldId",
+    "tkint",
+    "tkreal",
+    "definetypestmt",
+    "record",
+    "unionStruct", 
+    "declarations",
+    "declaration",
+    "otherStmts",
+    "tkid",
+    "tkglobal",
+    "singleOrRecordId",
+    "returnstmt",
+    "anlonalreturn",
+    "idlist",
+    "null",
+    "constructedVariable",
+    "funcallstmt",
+    "tkfunid",
+    "moreExpansions",
+    "assignmentStmt",
+    "outputparameters",
+    "inputparameters",
+    "ioStmt",
+    "readFunc",
+    "writeFunc",
+    "iterativeStmt",
+    "tknum",
+    "tkrnum",
+    "booleanExpression",
+    "conditionalStmt",
+    "tkand",
+    "tkor",
+    "outputpar",
+    "remainingList",
+    "tkrecordruid",
+    "tkunionruid",
+    "type_def_ruid",
+    "tklt",
+    "tkle",
+    "tkeq",
+    "tkgt",
+    "tkge",
+    "tkne",
+    "errorCondition",
+    "arithmeticExpression",
+    "term",
+    "expprime",
+    "tkplus",
+    "tkminus",
+    "tkmul",
+    "tkdiv",
+    "termPrime",
+    "typeDefinitions",
+    "optionalReturn",
+};
+
 ASTRoot* initializeAST() {
     ASTRoot* ast = (ASTRoot *) malloc (sizeof(ASTRoot));
     return ast;
@@ -42,17 +113,17 @@ void populateChildren(ASTNode* root, ASTNode* child){
     root -> numberOfChildren += sizeOfChild;
 }
 
-char fetchoperator(ParseTreeNode* parseNode){
+Operator fetchoperator(ParseTreeNode* parseNode){
     ParseTreeNode* parsePrecedenceoperatorNode = parseNode -> children[0];
     switch(parsePrecedenceoperatorNode -> symbolId){
         case 44:{ // low precedence order
             switch(parsePrecedenceoperatorNode -> ruleNumber){
                 case 0:{
-                    return '+';
+                    return plus;
                 }
 
                 case 1:{
-                    return '-';
+                    return minus;
                 }
             }
         }
@@ -60,26 +131,29 @@ char fetchoperator(ParseTreeNode* parseNode){
         case 47:{ // high precedence order
             switch(parsePrecedenceoperatorNode -> ruleNumber){
                 case 0:{
-                    return '*';
+                    return multiplication;
                 }
                 
                 case 1:{
-                    return '/';
+                    return division;
                 }
             }
         }
     }
 }
 
-// void printAST(ASTNode* AST){
-//     if(AST->isLeaf == 1){
-//         printf("%s",AST->label);
-//     }
-//     else{
-//         printf("%s",AST->label);
-//     }
+ void printAST(ASTNode* AST){
+    printf("%s \n",astLabel[AST->label]);
+    if(AST->isLeaf == 1){
+        return;
+    }
+    else{
+        for(int i=0;i< AST -> numberOfChildren; i++){
+            printAST(AST->children[i]);
+        }
+    }
 
-// }
+}
 
 ASTNode* ASTarithmeticHelper(ParseTreeNode* expprimeParseNode, ASTNode* termNode){
     ASTNode* arithmeticExpressionNode = initializeASTNode(false, arithmeticExpression);
@@ -847,6 +921,7 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             ASTNode* booleanExpressionNode = initializeASTNode(false, booleanExpression);
             switch(currNode -> ruleNumber){
                 case 0:{
+
                     ASTNode* booleanExpression_1 = buildASTRecursive(currNode->children[1]);
                     ASTNode* logicalopNode = buildASTRecursive(currNode->children[3]);
                     ASTNode* booleanExpression_2 = buildASTRecursive(currNode->children[5]);
@@ -872,9 +947,11 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                 
                 case 2:{
                     ASTNode* booleanExpression_3 = buildASTRecursive(currNode->children[2]);
-                    populateChildren(booleanExpressionNode, booleanExpression_3);
-
-                    free(booleanExpression_3);
+                    ASTNode* notNode = initializeASTNode(true, tknot);
+                    
+                    populateChild(booleanExpressionNode, booleanExpression_3);
+                    populateChild(booleanExpression_3, notNode);
+                    
 
                     return booleanExpressionNode;
                 }

@@ -126,8 +126,12 @@ int main(int argc,char** argv) {
             // parsing the input source code
             ParseTreeRoot *tree = parseInputSourceCode(sourcefile, table, grammar, firstAndFollowSets);
 
-            ASTRoot* astTree = buildAST(tree);
-            printf("hell");
+            ASTRoot* ast = buildAST(tree);
+            
+            
+            printf("The pre-order traversal of AST is as follows: \n");
+
+            printAST(ast->root);
         }
     }
 
