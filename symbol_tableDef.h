@@ -91,7 +91,7 @@ typedef struct SymbolInstance {
 typedef struct SymbolTable {
     SymbolInstance** symbolsHashTable;
     int currentOffset;
-    int scope; // for making the hashtable dynamic
+    int scope;
     struct SymbolTable* globalTable; // storing the address of global symobl table to acces global attributes (variables and records and typedefinitions).
 } SymbolTable;
 

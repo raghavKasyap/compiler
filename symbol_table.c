@@ -1,11 +1,12 @@
 #include "symbol_table.h"
+#include "ast.h"
 
 SymbolTable* initializeSymbolTable(int scope,SymbolTable* global) {
-    SymbolTable* symbolTable = (SymbolTable)malloc(sizeof(SymbolTable));
+    SymbolTable* symbolTable = (SymbolTable) malloc(sizeof(SymbolTable));
     symbolTable -> scope = scope;
-    symbolTable->symbolsHashTable = (Symbol**)malloc(sizeof(Symbol*) * SYMBOL_TABLE_SIZE);
-    symbolTable->globalTable = global;
-    symbolTable->currentOffset = 0;
+    symbolTable -> symbolsHashTable = (SymbolInstance**) malloc(sizeof(SymbolInstance*) * SYMBOL_TABLE_SIZE);
+    symbolTable -> globalTable = global;
+    symbolTable -> currentOffset = 0;
     return symbolTable;
 }
 
@@ -21,12 +22,12 @@ int computeHash(char* name){
     return hash % n;
 }
 
-void addSymbolToTable(SymbolTable* symbolTable, Symbol* symbol){
-    Symbol** hash_Table = symbolTable -> symbolsHashTable;
+void addSymbolToTable(SymbolTable* symbolTable, SymbolInstance* symbol){
+    SymbolInstance** hash_Table = symbolTable -> symbolsHashTable;
     TokenInfo* tk_info = symbol -> token;
     char* name = tk_info -> lexeme;
     int hash_val = computeHash(name);
-    Symbol* symbolList = hash_Table[hash_val];
+    SymbolInstance* symbolList = hash_Table[hash_val];
     while(symbolList->next){
         symbolList = symbolList->next;
     }
@@ -34,7 +35,7 @@ void addSymbolToTable(SymbolTable* symbolTable, Symbol* symbol){
 }
 
 void initializeSymbol(TokenInfo* token, int offset, SymbolTag symbolTag){
-    Symbol* symbol = (Symbol*)malloc(sizeof(Symbol));
+    SymbolInstance* symbol = (SymbolInstance*)malloc(sizeof(SymbolInstance));
     symbol->token = token;
     symbol->offset = offset;
     symbol->symbolTag = symbol->symbolTag;
@@ -50,4 +51,14 @@ void initializeSymbol(TokenInfo* token, int offset, SymbolTag symbolTag){
         break;
     }
     symbol->next = NULL;
+}
+
+
+SymbolTable* constructSymbolTable(ASTRoot* ast) {
+    // Plan
+    // For each function we have 
+    // we are initializing the global symbol table
+    SymbolTable* globalSymbolTable = initializeSymbolTable(0, NULL);
+
+    return globalSymbolTable;
 }
