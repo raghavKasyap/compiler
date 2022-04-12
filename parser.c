@@ -254,15 +254,17 @@ Grammar *generateGrammarFromFile(char *fileName)
                 break;
             }
 
-            Symbol newSymbol = createSymbol(symbol);
-            SymbolLinkedList *nextSymbolInRule = (SymbolLinkedList *)malloc(sizeof(SymbolLinkedList));
+            if (symbol[0] >= 'a' && symbol[0] <= 'z' || symbol[0] >= 'A' && symbol[0] <= 'Z') {
+                Symbol newSymbol = createSymbol(symbol);
+                SymbolLinkedList *nextSymbolInRule = (SymbolLinkedList *)malloc(sizeof(SymbolLinkedList));
 
-            size++;
+                size++;
 
-            nextSymbolInRule -> symbol = newSymbol;
-            nextSymbolInRule -> next = NULL;
-            currHead -> next = nextSymbolInRule;
-            currHead = currHead -> next;
+                nextSymbolInRule -> symbol = newSymbol;
+                nextSymbolInRule -> next = NULL;
+                currHead -> next = nextSymbolInRule;
+                currHead = currHead -> next;
+            }
         }
 
         // creating newRule;
