@@ -5,8 +5,8 @@ _unionfunction  input parameter list [record #two d5cc34, #point b5]
 output parameter list[real d3];
 
 	record #two
-		type #point: beginpoint;
-		type #point: endpoint;
+		type real: beginpoint;
+		type real: endpoint;
 	endrecord
 
 	type record #one : b3;
@@ -30,17 +30,18 @@ _main
 	endrecord	
 	definetype record #one as #point
 	definetype record #two as #line
-	union #four
-		type #line : ln; 
-		type #point: pt; 
-		type #traingle:tr;
-	endunion
 
-        definetype record #three as #triangle  
 	record #three 
 		type #line: base;
 		type #line: height;
 	endrecord
+	definetype record #three as #triangle  
+
+	union #four
+		type #line : ln; 
+		type #point: pt; 
+		type #triangle:tr;
+	endunion
 
 	definetype union #four as #shape
 	record #variantrecord
@@ -49,6 +50,7 @@ _main
 	endrecord
 
 	type record #variantrecord : d4;
+	type int : b66 : global;
 	type int : b5;
 	type int : d5cb34567;
 	type record #variantrecord: b5c6;
@@ -60,4 +62,4 @@ _main
 	write(b5c6.tag );
 	return;
 end
-^^^^^^^
+^^^^^^^^^

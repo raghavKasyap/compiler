@@ -1,3 +1,10 @@
+// Group 21 
+// Raghava Kasyap Kristipati - 2019A7PS0087P
+// K.V.S Preetam             - 2019A7PS0030P
+// Shanmukh Chandra Yama     - 2019A7PS0028P
+// Uday Dheeraj Nulu         - 2019A7PS0083P
+// Yadagiri Shiva Sai Sashank - 2019A7PS0068P
+
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -17,5 +24,8 @@ FirstAndFollow *computeFirstAndFollowSets(Grammar *grammar);
 ParseTable createParseTable (FirstAndFollow* faft, ParseTable table, Grammar* grammar);
 ParseTreeRoot* parseInputSourceCode(char* tokenFile, ParseTable table, Grammar* grammar,FirstAndFollow* firstAndFollowSets);
 void printParseTree(ParseTreeRoot *tree, char *outFile);
+void printparsetreeconsole(ParseTreeRoot *tree);
+void print_parsenodecount();
+void print_parsememory();
 
 #endif

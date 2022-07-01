@@ -1,9 +1,18 @@
+// Group 21 
+// Raghava Kasyap Kristipati - 2019A7PS0087P
+// K.V.S Preetam             - 2019A7PS0030P
+// Shanmukh Chandra Yama     - 2019A7PS0028P
+// Uday Dheeraj Nulu         - 2019A7PS0083P
+// Yadagiri Shiva Sai Sashank - 2019A7PS0068P
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "parser.h"
 #include "ast.h"
+
+int memory = 0;
+int node_count = 0;
 
 char* astLabel[] = {
     "program",
@@ -63,7 +72,7 @@ char* astLabel[] = {
     "tkgt",
     "tkge",
     "tkne",
-    "errorCondition",
+    "elseCondition",
     "arithmeticExpression",
     "term",
     "expprime",
@@ -83,6 +92,8 @@ ASTRoot* initializeAST() {
 
 ASTNode* initializeASTNode(bool isLeaf, NodeLabels nodeLabel) {
     ASTNode* newNode = (ASTNode*) malloc(sizeof(ASTNode));
+    node_count++;
+    memory += sizeof(ASTNode);
     newNode -> parent = NULL;
     newNode -> children = NULL;
     newNode -> numberOfChildren = 0;
@@ -90,6 +101,7 @@ ASTNode* initializeASTNode(bool isLeaf, NodeLabels nodeLabel) {
     // what to initialize for operator?
     newNode -> isLeaf = isLeaf;
     newNode -> label = nodeLabel;
+    newNode -> lookUpTable = NULL;
     return newNode;
 } 
 
@@ -155,7 +167,8 @@ Operator fetchoperator(ParseTreeNode* parseNode){
 
 }
 
-ASTNode* ASTarithmeticHelper(ParseTreeNode* expprimeParseNode, ASTNode* termNode){
+ASTNode* 
+ASTarithmeticHelper(ParseTreeNode* expprimeParseNode, ASTNode* termNode){
     ASTNode* arithmeticExpressionNode = initializeASTNode(false, arithmeticExpression);
 
     switch(expprimeParseNode -> ruleNumber){
@@ -207,31 +220,32 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         case 0: { // program 
             
             ASTNode* programNode = initializeASTNode(false, program);
-            
-            
             ASTNode* otherFunctionsList = buildASTRecursive(currNode -> children[0]);
-            
             ASTNode* mainFunctionNode = buildASTRecursive(currNode -> children[1]);
             
             populateChildren(programNode, otherFunctionsList);
-            
-            populateChildren(programNode, mainFunctionNode);
+            populateChild(programNode, mainFunctionNode);
             
             free(otherFunctionsList);
+            node_count --;
+            memory-=sizeof(ASTNode);
             return programNode;
-            
         }
         
         case 2: { // main function
             
-            ASTNode* mainFunctionNode = initializeASTNode(false, function);
+            ASTNode* mainFunctionNode = initializeASTNode(false, mainFunction);
             // main function should have access to global scope.
-
-            ASTNode* stmts = buildASTRecursive(currNode -> children[1]); // building the ast subtree for stmts
+            mainFunctionNode -> astNode -> astFunctionNode = (ASTFunctionNode *) malloc(sizeof(ASTFunctionNode));
+            mainFunctionNode -> astNode -> astFunctionNode -> functionName = "main function";
             
-            populateChildren(mainFunctionNode, stmts);
+            ASTNode* stmtsNode = buildASTRecursive(currNode -> children[1]); // building the ast subtree for stmtsNode
             
-            free(stmts); // removing the stmts nodes as it is no longer required
+            populateChildren(mainFunctionNode, stmtsNode);
+            
+            free(stmtsNode); // removing the stmts nodes as it is no longer required
+            node_count --;
+            memory-=sizeof(ASTNode);
             
             return mainFunctionNode;
         }
@@ -243,102 +257,86 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                 case 0:{
                     
                     ASTNode* function = buildASTRecursive(currNode->children[0]);
-                    
                     ASTNode* otherfunctions_1 = buildASTRecursive(currNode->children[1]);
                     
                     populateChild(otherfunctionsNode, function);
-                    
                     populateChildren(otherfunctionsNode, otherfunctions_1);
                     
-                    
+                    free(otherfunctions_1);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
                     return otherfunctionsNode;
                 }
-
                 case 1:{
                     return otherfunctionsNode;
                 }
             }
 
             
-            ASTNode* function = buildASTRecursive(currNode->children[0]);
+            // ASTNode* function = buildASTRecursive(currNode->children[0]);
             
-            ASTNode* otherfunctions_1 = buildASTRecursive(currNode->children[1]);
+            // ASTNode* otherfunctions_1 = buildASTRecursive(currNode->children[1]);
             
-            populateChild(otherfunctionsNode, function);
+            // populateChild(otherfunctionsNode, function);
             
-            populateChildren(otherfunctionsNode, otherfunctions_1);
+            // populateChildren(otherfunctionsNode, otherfunctions_1);
             
             
-            return otherfunctionsNode;
+            // return otherfunctionsNode;
         }
 
         case 3: { // stmts
             ASTNode* stmtsNode = initializeASTNode(false, stmts);
             
             ASTNode* typeDefinitionsNode = buildASTRecursive(currNode -> children[0]);
-            
             ASTNode* declarationsNode = buildASTRecursive(currNode -> children[1]);
-            
             ASTNode* otherStmtsNode = buildASTRecursive(currNode -> children[2]);
-            
             ASTNode* returnStmtsNode = buildASTRecursive(currNode -> children[3]);
-            
 
             // adding these nodes to the stmtsNode as children nodes
             populateChild(stmtsNode, typeDefinitionsNode);
-            
             populateChild(stmtsNode, declarationsNode);
-            
             populateChild(stmtsNode, otherStmtsNode);
-            
             populateChild(stmtsNode, returnStmtsNode);
-            
-
+        
             return stmtsNode;
         }
 
         case 4:{ // function
             
             ASTNode* functionNode = initializeASTNode(false, function);
+
+            // remvoing TK_FUNID as i can store the same info in functionNode
+            // ASTNode* TK_FUNID_Node = initializeASTNode(true, tkfunid);
             
-            ASTNode* TK_FUNID_Node = initializeASTNode(true, tkfunid);
-            
-            
-            TK_FUNID_Node -> astNode -> astFunctionNode = (ASTFunctionNode *) malloc(sizeof(ASTFunctionNode));
-            TK_FUNID_Node -> astNode -> astFunctionNode -> functionName = currNode -> children[0]->lexeme;
+            functionNode -> astNode -> astFunctionNode = (ASTFunctionNode *) malloc(sizeof(ASTFunctionNode));
+            functionNode -> astNode -> astFunctionNode -> functionName = currNode -> children[0] -> lexeme;
             
             ASTNode* input_par_Node = buildASTRecursive(currNode -> children[1]);
-            
             ASTNode* output_par_Node = buildASTRecursive(currNode -> children[2]);
-            
             ASTNode* stmtsNode = buildASTRecursive(currNode -> children[4]);
             
-
-            populateChild(functionNode, TK_FUNID_Node);
-            
             populateChild(functionNode, input_par_Node);
-            
             populateChild(functionNode, output_par_Node);
-            
             populateChildren(functionNode, stmtsNode);
-            
 
             free(stmtsNode);
+            node_count --;
+            memory-=sizeof(ASTNode);
 
             return functionNode;
         }
 
         case 5:{ //input_par
             ASTNode* input_par_Node = initializeASTNode(false, inputpar);
-            
             ASTNode* parameter_list_Node = buildASTRecursive(currNode -> children[4]);
             
             populateChildren(input_par_Node, parameter_list_Node);
             
             free(parameter_list_Node);
-            
+            node_count --;
+            memory-=sizeof(ASTNode);
             return input_par_Node;
-            
         }
 
         case 6: { // output_par
@@ -347,31 +345,30 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
 
             populateChildren(outputParNode, parameterListNode);
             free(parameterListNode);
+            node_count --;
+            memory-=sizeof(ASTNode);
             
             return  outputParNode;
         }
 
         case 7:{ //parameterlist
             ASTNode* parameterListNode = initializeASTNode(false, parameterlist);
-            
             ASTNode* datatypeNode = buildASTRecursive(currNode -> children[0]);
             
             ASTNode* TK_ID_Node = initializeASTNode(true, tkid);
             
-            TK_ID_Node->astNode->astIDNode = (AST_TK_ID*)malloc(sizeof(AST_TK_ID));
-            TK_ID_Node->astNode->astIDNode->IdName = currNode -> children[1]->lexeme;
+            TK_ID_Node -> astNode -> astIDNode = (AST_TK_ID*)malloc(sizeof(AST_TK_ID));
+            TK_ID_Node -> astNode -> astIDNode -> IdName = currNode -> children[1] -> lexeme;
             
             ASTNode* remainingListNode = buildASTRecursive(currNode -> children[2]);
             
-
             populateChild(parameterListNode, datatypeNode);
-            
             populateChild(parameterListNode, TK_ID_Node);
-            
             populateChildren(parameterListNode, remainingListNode);
+            node_count --;
+            memory-=sizeof(ASTNode);
             
             free(remainingListNode);
-            
             return parameterListNode;
         }
 
@@ -409,13 +406,22 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             
             switch(currNode -> ruleNumber){
                 case 0:{
-                    return initializeASTNode(true, tkrecordruid);
+                    ASTNode* currNodeAST = initializeASTNode(true, tkrecordruid);
+                    currNodeAST -> astNode -> astRUIDNode = (AST_TK_RUID_DEF *) malloc (sizeof(AST_TK_RUID_DEF));
+                    currNodeAST -> astNode -> astRUIDNode -> ruidName = currNode -> children[1] -> lexeme;
+                    return currNodeAST;
                 }
                 case 1:{
-                    return initializeASTNode(true, tkunionruid);
+                    ASTNode* currNodeAST = initializeASTNode(true, tkunionruid);
+                    currNodeAST -> astNode -> astRUIDNode = (AST_TK_RUID_DEF *) malloc (sizeof(AST_TK_RUID_DEF));
+                    currNodeAST -> astNode -> astRUIDNode -> ruidName = currNode -> children[1] -> lexeme;
+                    return currNodeAST;
                 }
                 case 2:{
-                    return initializeASTNode(true, type_def_ruid);
+                    ASTNode* currNodeAST = initializeASTNode(true, type_def_ruid);
+                    currNodeAST -> astNode -> astRUIDNode = (AST_TK_RUID_DEF *) malloc (sizeof(AST_TK_RUID_DEF));
+                    currNodeAST -> astNode -> astRUIDNode -> ruidName = currNode -> children[0] -> lexeme;
+                    return currNodeAST;
                 }
             }
         }
@@ -428,7 +434,6 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                 case 0: { // rule 0 which derives records and unions
                     
                     ASTNode* actualOrRedefined = buildASTRecursive(currNode -> children[0]);
-                    
                     ASTNode* otherTypeDefinitions = buildASTRecursive(currNode -> children[1]);
                     
                     // add the first typedefinition 
@@ -438,6 +443,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     populateChildren(typedefinitionsNode, otherTypeDefinitions);
                     
                     free(otherTypeDefinitions);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
 
                     return typedefinitionsNode;
                 }
@@ -458,6 +465,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     
                     populateChild(declarationsNode, declaration);
                     populateChildren(declarationsNode, declarationsList);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
                     
                     free(declarationsList);
                     return declarationsNode;
@@ -472,14 +481,14 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             ASTNode* declarationNode = initializeASTNode(false, declaration);
             ASTNode* datatypeNode = buildASTRecursive(currNode -> children[1]);
             ASTNode* TK_ID_Node = initializeASTNode(true, tkid);
-            TK_ID_Node->astNode->astIDNode = (AST_TK_ID*)malloc(sizeof(AST_TK_ID));
-            TK_ID_Node -> astNode -> astIDNode->IdName = currNode -> children[3] -> lexeme;
+            TK_ID_Node -> astNode -> astIDNode = (AST_TK_ID*)malloc(sizeof(AST_TK_ID));
+            TK_ID_Node -> astNode -> astIDNode -> IdName = currNode -> children[3] -> lexeme;
+
             ASTNode* global_or_not_Node = buildASTRecursive( currNode -> children[4]);
             
-            populateChildren(declarationNode, datatypeNode);
+            populateChild(declarationNode, datatypeNode);
             populateChild(declarationNode, TK_ID_Node);
             populateChild(declarationNode, global_or_not_Node);
-            free(datatypeNode);
 
             return declarationNode;
             
@@ -492,15 +501,14 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                 case 0: {
                     
                     ASTNode* stmtNode = buildASTRecursive(currNode->children[0]);
-                    
                     ASTNode* otherStmtsList = buildASTRecursive(currNode->children[1]);
-                    
 
                     populateChild(otherStmtsNode, stmtNode);
-                    
                     populateChildren(otherStmtsNode, otherStmtsList);
                     
                     free(otherStmtsList);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
                     return otherStmtsNode;
                 }
 
@@ -516,9 +524,12 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             
             ASTNode* returnstmtNode = initializeASTNode(false, returnstmt);
             ASTNode* optionalreturnNode = buildASTRecursive(currNode -> children[1]);
-            
 
             populateChildren(returnstmtNode, optionalreturnNode);
+            node_count --;
+            memory-=sizeof(ASTNode);
+
+            free(optionalreturnNode);
             
 
             return returnstmtNode;
@@ -528,16 +539,13 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             
             switch (currNode -> ruleNumber) {
                 case 0: { // typedefinition
-                     
                     return buildASTRecursive(currNode -> children[0]);
                 }
 
                 case 1: { // definetypestmt
-                    
                     return buildASTRecursive(currNode -> children[0]);
                 }
             }
-            
         }
 
         case 18: { // typedefinition
@@ -548,16 +556,16 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     ASTNode* recordTypeDefinitionNode = initializeASTNode(false, recordDefinition);
                     ASTNode* TK_RUID_Node = initializeASTNode(true, tkRuid);
 
-                    TK_RUID_Node -> astNode -> astRUIDNode = (AST_TK_RUID*)malloc(sizeof(AST_TK_RUID));
+                    TK_RUID_Node -> astNode -> astRUIDNode = (AST_TK_RUID_DEF*)malloc(sizeof(AST_TK_RUID_DEF));
                     TK_RUID_Node -> astNode -> astRUIDNode->ruidName = currNode -> children[1] -> lexeme;
                     populateChild(recordTypeDefinitionNode, TK_RUID_Node);
                     
-
                     ASTNode* fieldDefinitionsList = buildASTRecursive(currNode -> children[2]);
-                    
+
                     populateChildren(recordTypeDefinitionNode, fieldDefinitionsList);
-                    
                     free(fieldDefinitionsList);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
                     
                     return recordTypeDefinitionNode;
                 }
@@ -567,7 +575,7 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     ASTNode* unionTypeDefinitionNode = initializeASTNode(false, unionDefinition);
                     ASTNode* TK_RUID_Node = initializeASTNode(true, tkRuid);
                     
-                    TK_RUID_Node -> astNode -> astRUIDNode = (AST_TK_RUID*)malloc(sizeof(AST_TK_RUID));
+                    TK_RUID_Node -> astNode -> astRUIDNode = (AST_TK_RUID_DEF*)malloc(sizeof(AST_TK_RUID_DEF));
                     TK_RUID_Node -> astNode -> astRUIDNode->ruidName = currNode -> children[1] -> lexeme;
                     populateChild(unionTypeDefinitionNode, TK_RUID_Node);
                     
@@ -575,6 +583,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     
                     populateChildren(unionTypeDefinitionNode, fieldDefinitionsList);
                     free(fieldDefinitionsList);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
 
                     return unionTypeDefinitionNode;
                 }
@@ -591,21 +601,15 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             ASTNode* TK_RUID_NODE2 = initializeASTNode(true, tkRuid);
 
             
-            TK_RUID_NODE1 -> astNode -> astRUIDNode = (AST_TK_RUID*)malloc(sizeof(AST_TK_RUID));
-            TK_RUID_NODE2 -> astNode -> astRUIDNode = (AST_TK_RUID*)malloc(sizeof(AST_TK_RUID));
-
-            
+            TK_RUID_NODE1 -> astNode -> astRUIDNode = (AST_TK_RUID_DEF*)malloc(sizeof(AST_TK_RUID_DEF));
+            TK_RUID_NODE2 -> astNode -> astRUIDNode = (AST_TK_RUID_DEF*)malloc(sizeof(AST_TK_RUID_DEF));
 
             TK_RUID_NODE1 -> astNode -> astRUIDNode->ruidName = currNode -> children[2] ->lexeme;
             TK_RUID_NODE2 -> astNode -> astRUIDNode->ruidName = currNode -> children[4] ->lexeme;
 
-                        
-
             populateChild(definetypestmtNode, A);
             populateChild(definetypestmtNode, TK_RUID_NODE1);
             populateChild(definetypestmtNode, TK_RUID_NODE2);
-
-                        
 
             return definetypestmtNode;
         } 
@@ -625,6 +629,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             populateChildren(fieldDefinitionsNode, moreFieldsNode);
             
             free(moreFieldsNode);
+            node_count --;
+            memory-=sizeof(ASTNode);
             return fieldDefinitionsNode;
         }
 
@@ -634,7 +640,7 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             ASTNode* fieldTypeNode = buildASTRecursive(currNode -> children[1]);
             
             ASTNode* TK_FIELDID_Node = initializeASTNode(true, tkFieldId);
-            TK_FIELDID_Node -> astNode -> astFieldIdNode = (AST_TK_FIELDID*) malloc(sizeof(AST_TK_FIELDID));
+            TK_FIELDID_Node -> astNode -> astFieldIdNode = (AST_TK_FIELDID_DEF*) malloc(sizeof(AST_TK_FIELDID_DEF));
             TK_FIELDID_Node -> astNode -> astFieldIdNode->fieldName = currNode -> children[3] -> lexeme;
             
             populateChild(fieldDefinitionNode, fieldTypeNode);
@@ -653,6 +659,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     populateChild(moreFieldsNode, fieldDefinitionNode);
                     populateChildren(moreFieldsNode, moreFieldsList);
                     free(moreFieldsList);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
                 }
 
                 case 1: {
@@ -669,11 +677,11 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                 }
 
                 case 1: { // ruid type
-                    ASTNode* TK_RUID_Node = initializeASTNode(true, tkRuid);
+                    ASTNode* TK_RUID_Node = initializeASTNode(true, type_def_ruid);
                     
                     
-                    TK_RUID_Node -> astNode -> astRUIDNode = (AST_TK_RUID*)malloc(sizeof(AST_TK_RUID));
-                    TK_RUID_Node -> astNode -> astRUIDNode->ruidName = currNode -> children[0] -> lexeme;
+                    TK_RUID_Node -> astNode -> astRUIDNode = (AST_TK_RUID_DEF*)malloc(sizeof(AST_TK_RUID_DEF));
+                    TK_RUID_Node -> astNode -> astRUIDNode -> ruidName = currNode -> children[0] -> lexeme;
                     
                     return TK_RUID_Node;
                 }
@@ -748,6 +756,10 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             populateChild(iterativeNode, stmtNode);
             populateChildren(iterativeNode, otherstmtsNode);
 
+            free(otherstmtsNode);
+            node_count --;
+            memory-=sizeof(ASTNode);
+
             return iterativeNode;
         }
 
@@ -764,6 +776,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             populateChild(conditionalStmtNode, elseConditionStmt);
             
             free(otherStmtsList);
+            node_count --;
+            memory-=sizeof(ASTNode);
             return conditionalStmtNode;
         }
         
@@ -800,6 +814,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             ASTNode* TK_FUNID_NODE = initializeASTNode(true, tkfunid);
             TK_FUNID_NODE->astNode->astFunIdNode = (AST_TK_FUNID*)malloc(sizeof(AST_TK_FUNID));
             TK_FUNID_NODE->astNode->astFunIdNode->funDefinition = NULL;
+            TK_FUNID_NODE -> astNode -> astFunIdNode -> name = currNode -> children[2] -> lexeme;
+            
             ASTNode* inputparameters = buildASTRecursive( currNode-> children[5]);
             
             populateChild(funcallstmtNode, outputparameters);
@@ -841,6 +857,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
 
                     populateChild(constructedVariableNode, oneExpansionNode);
                     populateChildren(constructedVariableNode, moreExpansionsNode);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
                     free(moreExpansionsNode);
                     return constructedVariableNode;
                 }
@@ -853,7 +871,7 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         
         case 34: { // oneExpansion
             ASTNode* TK_FIELDID_Node = initializeASTNode(true, tkFieldId);
-            TK_FIELDID_Node -> astNode -> astFieldIdNode = (AST_TK_FIELDID*) malloc(sizeof(AST_TK_FIELDID));
+            TK_FIELDID_Node -> astNode -> astFieldIdNode = (AST_TK_FIELDID_DEF*) malloc(sizeof(AST_TK_FIELDID_DEF));
             TK_FIELDID_Node -> astNode -> astFieldIdNode->fieldName = currNode -> children[1] -> lexeme;
             return TK_FIELDID_Node;
         }
@@ -868,6 +886,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                 populateChild(moreExpansionsNode, oneExpansionNode);
                 populateChildren(moreExpansionsNode, moreExpansionsList);
                 free(moreExpansionsList);
+                node_count --;
+                memory-=sizeof(ASTNode);
             }
             
             return moreExpansionsNode;
@@ -880,6 +900,9 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     ASTNode* idList = buildASTRecursive(currNode->children[1]);
 
                     populateChildren(outputparametersNode,idList);
+                    free(idList);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
                    
                     return outputparametersNode;
                 }
@@ -898,6 +921,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
             ASTNode* idList = buildASTRecursive(currNode->children[1]);
             
             populateChildren(inputparametersNode, idList);
+            node_count --;
+            memory-=sizeof(ASTNode);
 
             return inputparametersNode;
         }
@@ -911,8 +936,10 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
 
             populateChild(idListNode,TK_ID_NODE);
             populateChildren(idListNode, more_ids);
+            node_count --;
+            memory-=sizeof(ASTNode);
 
-            free(idListNode);
+            free(more_ids);
 
             return idListNode;
         }
@@ -960,7 +987,7 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         }       
         
         case 40: { // elsecondition
-            ASTNode* elseConditionNode = initializeASTNode(false, errorCondition);
+            ASTNode* elseConditionNode = initializeASTNode(false, elseCondition);
             switch (currNode -> ruleNumber) {
                 
                 case 0: {
@@ -970,7 +997,8 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     populateChild(elseConditionNode, stmtNode);
                     populateChildren(elseConditionNode, otherStmtsNode);
                     free (otherStmtsNode);
-
+                    node_count --;
+                    memory-=sizeof(ASTNode);
                     return elseConditionNode;
                 }
 
@@ -1003,7 +1031,6 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
         case 42:{ // term
             ASTNode* factorNode = buildASTRecursive(currNode -> children[0]);
             ASTNode* termNode = ASTtermHelper(currNode -> children[1], factorNode);
-
 
             return termNode;
         }
@@ -1128,6 +1155,9 @@ ASTNode* buildASTRecursive(ParseTreeNode* currNode) {
                     ASTNode* idList = buildASTRecursive(currNode -> children[1]);
 
                     populateChildren(optionalReturnNode, idList);
+                    free(idList);
+                    node_count --;
+                    memory-=sizeof(ASTNode);
                     return optionalReturnNode;
 
                 }
@@ -1167,5 +1197,21 @@ ASTRoot* buildAST(ParseTreeRoot* parseTree) {
     ASTRoot* ast = initializeAST();
     
     ast -> root =  buildASTRecursive(root);
+    ast->ast_memory = memory;
+    ast->ast_nodes = node_count;
     return ast;
 }
+
+// void printASTtoConsole(){
+//     ASTNode* ast =  initializeAST();
+//     printAST(ast);
+//     return;
+// }
+
+// void get_astmemory(){
+//     printf("The memory allocated for all ASTNodes: %d\n", memory);
+// }
+
+// void get_astnodecount(){
+//     printf("The number of nodes in AST: %d\n",node_count);
+// }

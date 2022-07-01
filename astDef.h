@@ -1,7 +1,14 @@
+// Group 21 
+// Raghava Kasyap Kristipati - 2019A7PS0087P
+// K.V.S Preetam             - 2019A7PS0030P
+// Shanmukh Chandra Yama     - 2019A7PS0028P
+// Uday Dheeraj Nulu         - 2019A7PS0083P
+// Yadagiri Shiva Sai Sashank - 2019A7PS0068P
 #ifndef AST_DEF_H
 #define AST_DEF_H
 
 #include <stdbool.h>
+#include "parserDef.h"
 #include "symbol_tableDef.h"
 
 typedef enum NodeLabels {
@@ -63,7 +70,7 @@ typedef enum NodeLabels {
     tkge,
     tkne,
     tknot,
-    errorCondition,
+    elseCondition,
     arithmeticExpression,
     term,
     expprime,
@@ -93,32 +100,36 @@ typedef struct AST_TK_ID{
     char* IdName;
 } AST_TK_ID;
 
-typedef struct AST_TK_RUID {
+typedef struct AST_TK_RUID_DEF {
     char* ruidName;
-} AST_TK_RUID;
+} AST_TK_RUID_DEF;
 
-typedef struct AST_TK_FIELDID {
+typedef struct AST_TK_FIELDID_DEF {
     char* fieldName;
-} AST_TK_FIELDID;
+} AST_TK_FIELDID_DEF;
 
 typedef struct AST_TK_GLOBAL{
     bool global;
 }AST_TK_GLOBAL;
 
 typedef struct AST_TK_FUNID{
+    char* name;
     SymbolTable* funDefinition;
 }AST_TK_FUNID;
 
 typedef union ASTNodeUnion {
     ASTFunctionNode* astFunctionNode;
-    AST_TK_RUID* astRUIDNode;
-    AST_TK_FIELDID* astFieldIdNode;
+    AST_TK_RUID_DEF* astRUIDNode;
+    AST_TK_FIELDID_DEF* astFieldIdNode;
     AST_TK_ID* astIDNode;
     AST_TK_GLOBAL* astglobalNode;
     AST_TK_FUNID* astFunIdNode;
+    
 } ASTNodeUnion;
 
 typedef struct ASTNode {
+    int lineNumber;
+    bool isError;
     NodeLabels label;
     ASTNodeUnion* astNode;
     int numberOfChildren;
@@ -126,10 +137,13 @@ typedef struct ASTNode {
     struct ASTNode* parent;
     struct ASTNode** children;
     bool isLeaf;
+    SymbolTable* lookUpTable;
 } ASTNode;
 
 typedef struct ASTRoot {
     ASTNode* root;
+    int ast_memory;
+    int ast_nodes;
 } ASTRoot;
 
 #endif

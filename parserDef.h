@@ -1,3 +1,10 @@
+// Group 21 
+// Raghava Kasyap Kristipati - 2019A7PS0087P
+// K.V.S Preetam             - 2019A7PS0030P
+// Shanmukh Chandra Yama     - 2019A7PS0028P
+// Uday Dheeraj Nulu         - 2019A7PS0083P
+// Yadagiri Shiva Sai Sashank - 2019A7PS0068P
+
 // define data structures for grammar, first and follow table, parse table, stack ADT, parse tree ADT.
 #ifndef PARSER_DEF_H
 #define PARSER_DEF_H
@@ -82,6 +89,8 @@ typedef struct Stack {
 // root node datastructure
 typedef struct ParseTreeRoot {
     ParseTreeNode* root;
+    int parsetree_nodecount;
+    int parsetree_memory;
 } ParseTreeRoot;
 
 #endif

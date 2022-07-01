@@ -12,4 +12,4 @@ $real: c3;
 write(c3);
 return;union//record+endrecorb2c3endrecord
 end
-^
+^^^

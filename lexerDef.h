@@ -1,7 +1,14 @@
+// Group 21 
+// Raghava Kasyap Kristipati - 2019A7PS0087P
+// K.V.S Preetam             - 2019A7PS0030P
+// Shanmukh Chandra Yama     - 2019A7PS0028P
+// Uday Dheeraj Nulu         - 2019A7PS0083P
+// Yadagiri Shiva Sai Sashank - 2019A7PS0068P
+
 #ifndef LEXICAL_ANALYZER_DEF_H
 #define LEXICAL_ANALYZER_DEF_H
 
-#define BLOCK_SIZE 4096
+#define BLOCK_SIZE 16384
 #define LEX_BUFFER_INITIAL_SIZE 16
 #define SYMBOL_TABLE_INITIAL_CAPACITY 30
 

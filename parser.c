@@ -1,10 +1,18 @@
+// Group 21 
+// Raghava Kasyap Kristipati - 2019A7PS0087P
+// K.V.S Preetam             - 2019A7PS0030P
+// Shanmukh Chandra Yama     - 2019A7PS0028P
+// Uday Dheeraj Nulu         - 2019A7PS0083P
+// Yadagiri Shiva Sai Sashank - 2019A7PS0068P
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include "parser.h"
 #include "lexer.h"
-
+int parser_node_count = 0;
+int parse_tree_memory = 0;
 // array of terminal strings
 const char *TerminalIDs[] = {
     "TK_ASSIGNOP",
@@ -131,7 +139,8 @@ void printTokenInFile(FILE* fptr1)
         TokenInfo *tk = getNextToken(fptr1);
         printf("%d ", tk->linenum);
         printf("%s ", tk->lexeme);
-        printf("%s \n", TerminalIDs[tk->tokenId]);
+        if(tk->tokenId == -1) printf("TK_ERROR ");
+        else printf("%s \n", TerminalIDs[tk->tokenId]);
         if (tk->tokenId == DOLLAR){
             printf("\n**************\nTokenization has been successful\n\n**************\n");
             break;
@@ -542,6 +551,8 @@ RHSNonTerminalAppearance *createNewNode(int nonTerminalId, int productionNum)
 {
     RHSNonTerminalAppearance *newNode = (RHSNonTerminalAppearance *)malloc(sizeof(RHSNonTerminalAppearance));
     int *location = (int *)malloc(2 * sizeof(int));
+    // parser_node_count++;
+    // parse_tree_memory += 2*sizeof(int) + sizeof(RHSNonTerminalAppearance);
     location[0] = nonTerminalId;
     location[1] = productionNum;
     newNode->location = location;
@@ -868,6 +879,8 @@ ParseTreeNode *createNewTreeNode(bool type, int symbolId, int parentSymbolId, ch
     ParseTreeNode *newNode = (ParseTreeNode *)malloc(sizeof(ParseTreeNode));
     char *nonTerminalLexeme = (char *)malloc(5 * sizeof(char));
 
+
+
     nonTerminalLexeme[0] = '-';
     nonTerminalLexeme[1] = '-';
     nonTerminalLexeme[2] = '-';
@@ -891,6 +904,10 @@ ParseTreeRoot *initializeTreeRoot()
 {
     ParseTreeRoot *tree = (ParseTreeRoot *)malloc(sizeof(ParseTreeRoot));
     tree->root = createNewTreeNode(true, 0, -1, NULL, -1, NULL);
+    
+    parser_node_count++;
+    parse_tree_memory+=sizeof(ParseTreeNode);
+
     return tree;
 }
 
@@ -1022,10 +1039,13 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
                 {
                     ParseTreeNode **children = (ParseTreeNode **)malloc(rule->size * sizeof(ParseTreeNode *));
 
+
                     for (int i = 0; i < rule->size; i++)
                     {
                         children[i] = createNewTreeNode(symbolsList->symbol.type, symbolsList->symbol.symbolID, parentRef->symbolId, NULL, -1, NULL);
                         symbolsList = symbolsList->next;
+                        parser_node_count++;
+                        parse_tree_memory+=sizeof(ParseTreeNode);
                     }
 
                     top = pushProduction(top, children, rule->size);
@@ -1036,6 +1056,8 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
                     ParseTreeNode **children = (ParseTreeNode **)malloc(rule->size * sizeof(ParseTreeNode *));
                     children[0] = createNewTreeNode(symbolsList->symbol.type, symbolsList->symbol.symbolID, parentRef->symbolId, "EPS", -1, NULL);
                     populateParseTree(parentRef, children, rule->size);
+                    parser_node_count++;
+                        parse_tree_memory+=sizeof(ParseTreeNode);
                 }
             }
 
@@ -1104,7 +1126,8 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
         printf("\n********************************** \n");
         printf("Source Code parsed successfully \n");
         printf("**********************************\n");
-        return tree;
+        tree -> parsetree_memory = parse_tree_memory;
+        tree -> parsetree_nodecount = parser_node_count;
     }
     else{
         printf("\n************************************* \n");
@@ -1112,6 +1135,9 @@ ParseTreeRoot *parseInputSourceCode(char *tokenFile, ParseTable table, Grammar *
         printf("*************************************\n");
         return NULL;
     }
+
+    
+    
 };
 
 // helper to print a tree node in required structure
@@ -1207,6 +1233,93 @@ void printParseTree(ParseTreeRoot *tree, char *outFile)
     ParseTreeNode *root = tree->root;
     printInorderTraversalToFile(root, fptr);
 };
+
+void printTreeNodeToConsole(ParseTreeNode *node)
+{
+    // lexemeCurrentNode lineno tokenName valueIfNumber parentNodeSymbol isLeafNode(yes/no) NodeSymbol
+    char *yes = (char *)malloc(4 * sizeof(char));
+    char *no = (char *)malloc(3 * sizeof(char));
+
+    yes[0] = 'y';
+    yes[1] = 'e';
+    yes[2] = 's';
+    yes[3] = '\0';
+
+    no[0] = 'n';
+    no[1] = 'o';
+    no[2] = '\0';
+
+    char *lexeme = node -> lexeme;
+    int linenumber = node -> lineNumber;
+    bool isRealNum = node -> symbolId == REALNUM;
+    bool isNum = node -> symbolId == NUM;
+
+    int valueInt = 0;
+    float valueFloat = 0;
+
+    if (isNum)
+        valueInt = node -> value == NULL ? -1 : node -> value->i;
+    if (isRealNum)
+    {
+        valueFloat = node -> value == NULL ? -1 : node -> value->f;
+    }
+
+    char *tokenName = node -> type ? NULL : TerminalIDs[node -> symbolId];
+    char *nodeSymbol = node -> type ? NonTerminalIDs[node -> symbolId] : NULL;
+    char *parentName = NonTerminalIDs[node -> parentSymbolId];
+    char *isLeafNode  =  !node -> type ? yes : no;
+
+    // numbers
+    if (isRealNum)
+    {
+        printf("%s %d %s %f %s %s \n", lexeme, linenumber, tokenName, valueFloat, parentName, isLeafNode);
+    }
+    else if (isNum)
+    {
+        printf("%s %d %s %d %s %s \n", lexeme, linenumber, tokenName, valueInt, parentName, isLeafNode);
+    }
+    // terminals
+    else if (node->type == 0)
+    {
+        printf("%s %d %s %s %s \n", lexeme, linenumber, tokenName, parentName, isLeafNode);
+    }
+    // nonterminals
+    else if (node->type)
+    {
+        printf("%s %s %s %s %d \n", lexeme, parentName, isLeafNode, nodeSymbol, node -> ruleNumber);
+    }
+};
+
+void printInorderTraversalToConsole(ParseTreeNode *node)
+{
+    if (node->children == NULL)
+    {
+        printTreeNodeToConsole(node);
+        return;
+    }
+
+    for (int i = 0; i < node->numberOfChildren - 1; i++)
+    {
+        printInorderTraversalToConsole(node->children[i]);
+    }
+
+    printTreeNodeToConsole(node);
+
+    printInorderTraversalToConsole(node->children[node->numberOfChildren - 1]);
+};
+
+void printparsetreeconsole(ParseTreeRoot *tree){
+    ParseTreeNode* root = tree->root;
+    printInorderTraversalToConsole(root);
+};
+
+// void print_parsenodecount(){
+//     printf("Number of nodes in parse tree: %d",parser_node_count);
+// }
+
+// void print_parsememory(){
+//     printf("Memory allocated to parse tree: %d",memory);
+// }
 
 // int main() {
 //     Grammar* grammar;

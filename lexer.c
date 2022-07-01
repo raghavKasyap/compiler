@@ -1,3 +1,10 @@
+// Group 21 
+// Raghava Kasyap Kristipati - 2019A7PS0087P
+// K.V.S Preetam             - 2019A7PS0030P
+// Shanmukh Chandra Yama     - 2019A7PS0028P
+// Uday Dheeraj Nulu         - 2019A7PS0083P
+// Yadagiri Shiva Sai Sashank - 2019A7PS0068P
+
 #include "lexer.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -68,7 +75,7 @@ int getStream(FILE *fp)
 
     if (!(noOfChars + 1))
     {
-        printf("Error: Input Buffers failed to be loaded\n");
+        // printf("Error: Input Buffers failed to be loaded\n");
         return -1;
     }
 
@@ -80,7 +87,7 @@ char getnextchar(FILE *fp)
 {
     char *lastchar;
     int out;
-
+    // printf("\nentered getnextchar\n");
     if (ptr1 == NULL && ptr2 == NULL)
     {
         out = getStream(fp);
@@ -103,11 +110,11 @@ char getnextchar(FILE *fp)
     else
     {
         lastchar = ptr2;
-
+        // printf("entered else\n");
         if (ptr2 + 1 == buff[buffcurr] + BLOCK_SIZE)
         {
             out = getStream(fp);
-
+            // printf("entered if\n");
             if (out + 1 == 0)
             {
                 return EOF;
@@ -121,6 +128,7 @@ char getnextchar(FILE *fp)
         // }
         else
         {
+            // printf("entered else 2\n");
             ptr2++;
         }
 
@@ -128,7 +136,7 @@ char getnextchar(FILE *fp)
         {
             linenum++;
         }
-
+        // printf("%c",*lastchar);
         return *lastchar;
     }
 }
@@ -314,6 +322,7 @@ TokenInfo *getNextToken(FILE *fp)
             else if (c == '<')
             {
                 dfa_state = 9;
+                // printf("entered\n");
             }
             else if (c == '=')
             {
@@ -515,7 +524,9 @@ TokenInfo *getNextToken(FILE *fp)
             }
             else if (c == '-')
             {
+                // printf("entered 9");
                 dfa_state = 11;
+                
             }
             else
             {
@@ -1130,7 +1141,7 @@ TokenInfo *getNextToken(FILE *fp)
         }
         case 53:
         {
-            if (c == 'E')
+            if (c == 'e' || c == 'E')
             {
                 dfa_state = 55;
             }
@@ -1329,10 +1340,10 @@ void appendlastchar(char *fileName)
 }
 
 // int main() {
-//     appendlastchar("t1.txt");
-//     FILE *fptr = fopen("t1.txt", "r");
+//     appendlastchar("s4.txt");
+//     FILE *fptr = fopen("s4.txt", "r");
 //     initialize_Symbol_Table();
-//     for (int i = 0; i < 300; i++)
+//     while(1)
 //     {
 //         TokenInfo *tk = getNextToken(fptr);
 //         printf("%d ", tk->linenum);
